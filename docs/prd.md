@@ -20,123 +20,107 @@ The Agentic AI Tic Tac Toe Showcase addresses this critical need by using a fami
 | Date       | Version | Description                              | Author          |
 |------------|---------|------------------------------------------|-----------------|
 | 2025-09-21 | 1.0     | Initial PRD creation from project brief  | John (PM Agent) |
+| 2025-09-24 | 1.1     | Simplified scope: single perfect computer opponent (exhaustive search), removed difficulty tiers, undo/redo history, AI vs AI mode, multi-layer diagnostics & e2e harness; diagnostics limited to unit tests | John (PM Agent) |
+| 2025-09-24 | 1.2     | Reintroduced integration & e2e test layers (smoke + basic gameplay flows) while keeping simplified architecture | John (PM Agent) |
 
 ## Requirements
 
-### Functional Requirements
- - FR1: Establish project scaffolding and a minimal health-check route/canary page to enable continuous local testing from Day 1; deployment is manual (documented) rather than CI/CD-based.
-- FR2: Implement a game engine supporting two board sizes and win rules: 3x3 (k=3) and 6x6 (k=4). Winning lines include any contiguous k-in-a-row across rows, columns, and both diagonals. Include legal move validation, turn alternation, terminal-state detection (win/draw), and reject invalid moves (occupied cell or post-terminal) with a clear error. Mode is selected at game start and surfaced for tests/UI.
-- FR3: Provide state management with undo/redo: maintain a per-move history stack; invalidate redo when a new move occurs after an undo; no hard limit for MVP (configurable limit exposed for tests).
-- FR4: Support gameplay modes: human vs human, human vs AI, and AI vs AI, selectable before game start and switchable between rounds.
-- FR5: Implement AI difficulties with deterministic behavior definitions:
-  - Easy: With 50% probability choose uniformly at random from legal moves; otherwise use the strategic engine.
-  - Medium: With 25% probability choose uniformly at random from legal moves; otherwise use the strategic engine.
-  - Hard: Compute and play the game-theoretic optimal move (perfect play) for both modes; implement full search with alpha-beta pruning and a transposition table where needed to meet performance targets. Randomness uses a seeded PRNG with seed surfaced for reproducible tests. Strategic tie-breakers: quickest win, then minimize opponent’s best outcome, then center/corners preference, then lowest index.
-- FR6: Deliver a responsive web UI that renders the board, indicates current player, allows move input, shows outcomes (win/draw), and supports starting a new game. Use animated, 3D marks for player symbols with entry animations ≤300ms and a reduced-motion fallback.
-- FR7: Implement a 3D-styled board in a top-down classic layout. Provide a visible "lock" treatment indicating active vs terminal board states; upon game over, overlay a brief lock animation that disables further input without harming readability.
-- FR8: Expose internal module interfaces between UI, engine, players, and state management to demonstrate clear separation of concerns.
-- FR9: Provide a comprehensive automated test suite developed via TDD, including unit tests (k-in-row on both sizes, AI difficulty selection including randomness ratios via seeded runs, undo/redo semantics), integration tests (UI ↔ engine ↔ AI), and e2e tests (H vs AI and AI vs AI) across both board sizes and difficulty levels.
- - FR10: Provide a Credits/About page accessible from the main UI (settings/start and footer link) that lists contributors, acknowledges third-party libraries/frameworks (Angular, Nx, Tailwind, Babylon.js, NgRx, Playwright, seedrandom, etc.) with versions and licenses, and links to the project repository and LICENSE/NOTICE files.
+### Functional Requirements (v1.1 Simplified)
+ - FR1: Establish project scaffolding and a minimal `/health` route/canary page; deployment is manual (documented) rather than CI/CD-based.
+ - FR2: Implement a game engine supporting two board sizes and win rules: 3x3 (k=3) and 7x7 (k=4). Winning lines include any contiguous k-in-a-row across rows, columns, and both diagonals. Include legal move validation, turn alternation, terminal-state detection (win/draw), and reject invalid moves (occupied cell or post-terminal) with a clear error.
+ - FR3: Support gameplay modes: Human vs Human and Human vs Computer (single perfect-play computer). (Removed: AI vs AI, difficulty tiers.)
+ - FR4: Computer opponent selects a best move via exhaustive search of possible continuations (memoization allowed); no randomness, seeding, or tie-breaker hierarchy beyond picking an optimal result (prefer earliest winning path if multiple).
+ - FR5: Provide a responsive web UI that renders the board, indicates current player, allows move input, shows outcomes (win/draw), and supports starting a new game. Undo/redo and per-move history are out of scope.
+ - FR6: Optional subtle 3D or visual enhancement; simple terminal-state lock that disables further input (animated lock optional, may be omitted).
+ - FR7: Expose a minimal public API from the engine consumed directly by the UI (no separate AI module / worker layer).
+ - FR8: Provide a unit test suite (single layer) covering engine rules (k-in-row, terminal detection, correct optimal move in selected scenarios) and minimal UI smoke tests. No integration, e2e, or performance benchmark suites.
+ - FR9: Provide a Credits/About page accessible from the main UI listing contributors and third-party libraries (versions/licenses) and linking to LICENSE/NOTICE files.
+ - FR10: Provide integration tests (component/service wiring) and e2e Playwright tests covering health route, basic Human vs Computer game flow (3x3 & 7x7), win/draw detection, and accessibility (ARIA announcements, reduced-motion) smoke scenarios.
 
-### Non-Functional Requirements
-- NFR1: Achieve and maintain >90% automated test coverage across all modules.
-- NFR2: Enforce clear modular boundaries and separation of concerns with documented interfaces and module contracts.
-- NFR3: Meet performance targets: <100ms response time for game operations; initial load bundle size <2MB; animations target 60fps; hard-level AI decision latency <100ms p50 and <500ms p95 for mid-game positions on typical hardware, with graceful UI feedback if exceeded.
-- NFR4: Provide complete documentation: README, API docs, architecture decisions (ADRs), and a development guide describing TDD workflow.
-- NFR5: Implement secure coding practices including strict input validation and XSS protection for any user-input surfaces.
-- NFR6: Ensure cross-browser support for modern browsers (Chrome 90+, Firefox 88+, Safari 14+, Edge 90+).
-- NFR7: Maintain code quality via linting, formatting, and documented local scripts; all changes must pass tests and linters before merge.
-- NFR8: Ensure maintainability by keeping functions small, modules cohesive, and public APIs stable with semantic versioning inside the repo.
-- NFR9: Provide accessibility fundamentals (semantic HTML, sufficient contrast) and honor prefers-reduced-motion; ensure 3D visuals maintain readability and announce state changes (e.g., wins) via ARIA live regions.
-- NFR10: Provide developer ergonomics: fast local test runs, deterministic tests, and clear scripts to run, test, and build; expose PRNG seeding for reproducible test scenarios.
-- NFR11: UI asset efficiency: Tailwind CSS for styling; prefer vector assets; additional 3D/animation assets budget ≤300KB gzip. If using Babylon.js, lazy-load it as a separate chunk ≤800KB gzip and keep the initial route bundle <2MB.
- - NFR12: Licensing & attribution compliance: Credits page must surface license names and links for third-party dependencies; repository includes LICENSE and NOTICE; an automated script generates a `credits.json` from package manifests to keep attributions accurate.
+### Non-Functional Requirements (v1.2 Updated)
+ - NFR1: Target ≥85% combined unit + integration coverage for engine & UI logic (e2e excluded from coverage metrics but required to pass).
+ - NFR2: Keep architecture minimal: only separate engine from UI; omit undo/redo, statistics, complex AI abstraction layers.
+ - NFR3: Performance: computer move calculation should generally complete perceptibly instantly (<50ms typical). If certain 7x7 positions exceed ~100ms, introduce memoization or shallow pruning pragmatically.
+ - NFR4: Documentation: concise README (setup, run, test, build) plus a short architecture note describing engine design and exhaustive search approach. Extended ADR set optional.
+ - NFR5: Basic security hygiene (no unsafe HTML injection; sanitize any future user-entered strings if added).
+ - NFR6: Support modern evergreen browsers (Chrome, Firefox, Edge, Safari) with responsive layout and touch support.
+ - NFR7: Maintain code quality via linting & formatting; all commits pass tests before merge.
+ - NFR8: Accessibility: semantic HTML, sufficient contrast, ARIA live announcement for result, respect `prefers-reduced-motion`.
+ - NFR9: Bundle size expected to remain naturally small (<500KB gzip). If optional Babylon.js is included, lazy-load it and keep initial bundle <1MB.
+ - NFR10: Licensing & attribution compliance via a Credits page and LICENSE/NOTICE files; automated generation of dependency metadata is optional and may be deferred.
 
-## User Interface Design Goals
+## User Interface Design Goals (Simplified)
 
 ### Overall UX Vision
-- Professional, minimalist, and educational showcase that highlights engineering quality without visual clutter.
-- Top-down classic board layout enhanced with subtle 3D styling (depth, shadows) and animated 3D X/O marks.
-- Motion used sparingly to communicate state changes (mark placement, win highlight, board lock) with a reduced-motion fallback.
-- Clear information hierarchy: current player, game state, controls (new game, undo/redo), mode indicators (board size, difficulty).
-- Responsive across mobile, tablet, and desktop with touch and pointer support.
+- Minimal, clean board-first layout.
+- Optional subtle depth/animation (≤300ms) purely cosmetic; game remains fully usable without animations or WebGL.
+- Clear information hierarchy: current player, board, basic controls (New Game, Board Size, Mode toggle).
+- Responsive across mobile, tablet, desktop with touch & pointer input.
 
 ### Key Interaction Paradigms
-- Single primary play view with lightweight overlays for settings and results.
-- Input: click/tap to place mark; on-screen controls to close overlays.
-- Controls: pre-game selector for board size (3x3, 6x6) and difficulty; in-game undo/redo; restart; switch mode between rounds.
-- Feedback: animated mark placement (≤300ms), winning line highlight, and a brief lock animation on terminal state that disables input.
- - Feedback: animated mark placement (≤300ms), winning line highlight, and a brief lock animation on terminal state that disables input; 3D effects rendered via a WebGL canvas overlay when enabled.
-- Accessibility: ARIA live announcements for turn changes and results, respects prefers-reduced-motion, and maintains sufficient contrast.
+- Single primary view; inline controls (no modal required—optional simple panel if needed later).
+- Input: click/tap empty cell to place mark; invalid cell clicks ignored (optionally announce).
+- Controls: Board size (3x3 / 7x7), Mode (Human vs Human / Human vs Computer), New Game.
+- Feedback: optional mark placement animation, highlight winning line, simple disabled state after terminal result.
+- Accessibility: ARIA live region announces turns and results; respects `prefers-reduced-motion`.
 
-### Core Screens and Views
-- Start/Settings Modal: choose board size and difficulty; brief explanations of AI levels.
-- Game Board View: board grid, current player indicator, controls (undo/redo/restart), minimal status bar with mode indicators.
-- Result/Replay Overlay: win/draw message, winning-line highlight, options to replay or change settings.
-- Learn/Docs Panel (optional): link to documentation about architecture, TDD, and BMAD highlights.
- - Credits/About Page: contributors, third-party acknowledgments with versions/licenses, links to repo and legal files.
+### Core Screens / Views
+- Game Board View (primary)
+- Credits/About Page
 
-### Accessibility: WCAG AA
-- Sufficient contrast; color choices pass AA contrast for text and UI components.
-- Reduced-motion alternative for all animations; no critical information conveyed by motion alone.
-- ARIA live region announcements for game start, turn changes, invalid moves, wins/draws, and board lock.
+### Accessibility
+- Contrast meets WCAG AA for essential UI.
+- Live announcements: game start, each turn, result (win/draw), invalid move (optional, minimalistic).
+- Reduced-motion: animations skipped or instantly applied.
 
-### Branding
-- Neutral, modern styling aligned to a technical audience; no proprietary brand constraints identified.
-- 3D aesthetic implemented with CSS transforms and lighting cues; avoid heavy textures to meet asset budget.
- - 3D aesthetic implemented with Babylon.js (WebGL) for marks and board lock; provide CSS transforms fallback when reduced-motion is enabled or WebGL is unavailable; avoid heavy textures to meet asset budget.
+### Branding & Visuals
+- Neutral, modern, lightweight styling; technical audience.
+- 3D / Babylon.js entirely optional; CSS-only fallback default.
 
-### Target Device and Platforms: Web Responsive
-- Modern desktop and mobile browsers (Chrome, Firefox, Safari, Edge) with touch and pointer input support.
+### Target Platforms
+- Modern evergreen browsers (Chrome, Firefox, Safari, Edge) on desktop & mobile.
 
 ## Technical Assumptions
 
-### Repository Structure: Monorepo (Nx)
-- Use Nx with PNPM workspaces to enforce modular boundaries and caching.
-- Apps/Libs:
-  - `apps/ui` (Angular app)
-  - `libs/engine` (pure TS game rules and k-in-row logic)
-  - `libs/ai` (search, minimax/alpha-beta, transposition table)
-  - `libs/shared` (types, utilities)
-  - `apps/e2e` (Playwright tests)
-- Rationale: Clear separation of concerns, fast local tasks via Nx cache, showcases modular architecture.
+### Repository Structure: Monorepo (Nx, Simplified)
+- `apps/ui` (Angular UI)
+- `libs/engine` (rules + exhaustive perfect-move search)
+- `libs/shared` (types/utilities)
 
-### Service Architecture
-- Modular monolith centered on a client-side Angular SPA.
-- No backend required for MVP; optional serverless endpoints post-MVP.
-- Offload heavy AI computations to Web Workers to keep UI responsive.
-- Rationale: Minimizes infra while demonstrating clean module APIs and strong testability.
+Removed: separate AI library, e2e test app, undo/redo history service.
 
-### Testing Requirements
-- Full testing pyramid with coverage ≥90%:
-  - Unit: Jest for engine/ai/state services.
-  - Component/Integration: @testing-library/angular for Angular components + service wiring.
-  - E2E: Playwright (both board sizes, all AI levels, seeded runs for randomness ratios).
-- Local gate: npm scripts ensure tests + lint/format pass before merge (run locally and documented); coverage report generated locally.
+### Service Architecture (Simplified)
+- Pure client-side Angular SPA.
+- No Web Workers (exhaustive search performance acceptable with memoization).
+- No backend/services.
 
-### Additional Technical Assumptions and Requests
-- Framework: Angular (no React). Use Nx Angular with Vite bundler.
-- Builder: Vite-based build/dev server (Nx Angular Vite or Angular's Vite builder); optimize with esbuild/rollup.
- - Styling: Tailwind CSS (Angular integration) with utility-first classes, design tokens, and a minimal custom theme.
- - 3D Rendering: Babylon.js for animated 3D marks and board lock; load lazily via dynamic import to keep initial bundle small; render in a separate WebGL canvas layered under UI; provide CSS-based 3D fallback.
- - Credits Data & Routing: Add a build-time script to emit `credits.json` (dependency name, version, license, homepage). Angular route `/credits` renders the Credits/About page by consuming this JSON and static content (contributors, repo links).
-- Language: TypeScript strict mode across all libs/apps.
-- State Management: NgRx store for game and settings; implement undo/redo via a history service integrated with store.
-- AI Engine: Minimax with alpha-beta pruning + transposition table (Zobrist hashing), iterative deepening; perfect play for both 3x3(k=3) and 6x6(k=4).
-- Web Workers: Generate workers for AI computations (`ng generate web-worker`); message-based API between UI and AI.
-- PRNG: `seedrandom` for seeded difficulty behavior; seed surfaced via UI and URL param for reproducibility.
-- Performance: Enforce hard-level decision latency targets; show spinner if exceeded and keep under 500ms p95.
- - Tooling: ESLint, Prettier; Tailwind + PostCSS config; ADRs under `docs/architecture/`.
-- Hosting: Static deploy (Vercel/Netlify) with SPA fallback; environment config via Angular environments.
-- Security: Sanitize user-visible strings; strict DOM APIs; avoid eval; recommend CSP in deployment guide.
+### Testing Requirements (v1.2)
+- Unit Tests (Jest): engine logic (k-in-row, terminal detection, exhaustive optimal move scenarios), utility functions, simple UI component logic.
+- Integration Tests (Jest + @testing-library/angular): board/component ↔ engine interaction (placing moves, terminal detection, computer move application), accessibility announcements (mocked live region), reduced-motion preference handling.
+- End-to-End Tests (Playwright):
+	- Smoke: `/health` route renders status.
+	- Gameplay: Human vs Computer 3x3 quick win scenario; Human vs Computer 7x7 mid-game leading to draw (scripted moves); verification of winning line highlight & disabled input post terminal.
+	- Accessibility: reduced-motion forced; ARIA announcements presence.
+- Determinism: Computer opponent is deterministic (exhaustive search) so e2e assertions rely on fixed expected moves after given sequence.
+- Scripts: `test` (unit+integration), `test:unit`, `test:integration`, `e2e` (Playwright), `coverage`.
+- CI/Local Gate (manual for now): must pass unit, integration, e2e before release; coverage threshold enforced on unit+integration only.
 
-## Epic List
+### Additional Technical Assumptions (Simplified)
+- Angular (Nx + Vite) + Tailwind (minimal config) + strict TypeScript.
+- State via lightweight services or component state (NgRx only if future complexity grows).
+- Perfect move: recursive exhaustive search with memoization (board string + player).
+- No seeded randomness, no difficulty tiers, no workers.
+- Optional Babylon.js (lazy) OR omit entirely (CSS-only visuals).
+- Tooling: ESLint, Prettier; one short architecture note (ADR optional).
+- Static hosting (Vercel/Netlify) manual deploy.
+- Basic security hygiene (no dynamic HTML injection).
 
-- Epic 1: Foundation & Core Infrastructure — Scaffold the Angular Nx monorepo with Vite, Tailwind, local test/lint/format gates, ADRs, and a canary health-check to enable continuous, testable delivery (no hosted CI/CD).
-- Epic 2: Core Engine & State — Implement k-in-row rules for 3x3(k=3) and 6x6(k=4), move validation, terminal detection, and undo/redo history with clear module interfaces and unit tests.
-- Epic 3: AI Players & Performance — Deliver Easy/Medium/Hard AI with seeded randomness ratios and perfect-play Hard via minimax+alpha-beta+TT in Web Workers; validate latency targets.
-- Epic 4: UI Integration & 3D Experience — Build responsive Angular UI with Tailwind, integrate engine/AI, add animated 3D marks and lock via Babylon.js with CSS fallback and reduced-motion support.
-- Epic 5: E2E, Credits, Docs & Release — Add Playwright e2e coverage across modes/sizes, implement Credits page with generated credits.json, finalize docs, polish performance, and deploy.
+## Epic List (Simplified)
+
+- Epic 1: Foundation & Core Infrastructure — Scaffold Nx Angular workspace, Tailwind, lint/test scripts, health-check.
+- Epic 2: Core Engine & Perfect Computer Opponent — Board logic, k-in-row detection, exhaustive optimal move.
+- Epic 3: UI Integration — Responsive UI, minimal controls, accessibility, optional light animation/3D.
+- Epic 4: Credits & Release — Credits page, minimal docs, build & manual deploy.
 
 ## Epic 1: Foundation & Core Infrastructure
 
@@ -147,19 +131,20 @@ Establish a robust, modular Angular Nx workspace with Vite and Tailwind, enforce
 Story 1.1 Scaffold Monorepo and Baseline Tooling
 
 Acceptance Criteria
-1: Nx workspace created with PNPM; apps/libs layout initialized: `apps/ui`, `libs/engine`, `libs/ai`, `libs/shared`, `apps/e2e`.
+1: Nx workspace created with PNPM; layout initialized: `apps/ui`, `libs/engine`, `libs/shared`, `apps/ui-e2e` (Playwright project).
 2: Angular app configured to use Vite builder; TypeScript strict mode enabled globally.
-3: Tailwind CSS integrated with PostCSS; base theme tokens and utility classes available in the UI app.
+3: Tailwind CSS integrated with PostCSS; base theme utilities available in the UI app.
 4: ESLint + Prettier configured; formatter and linter scripts available to run locally.
 5: README updated with setup, run, and test commands.
 
 Story 1.2 Local Quality Automation
 
 Acceptance Criteria
-1: Package scripts exist for `lint`, `test`, `test:coverage`, `build`, and `e2e` to run locally (PNPM/Nx).
-2: Coverage report generated locally; coverage threshold enforced in Jest config (initial 80%, target 90% by Epic 3).
-3: Provide a single `pnpm validate` script that runs `lint`, `test`, and `build` locally.
-4: Quality gate documented: contributors run `pnpm validate` locally before merge.
+1: Package scripts exist for `lint`, `test`, `test:unit`, `test:integration`, `e2e`, `coverage`, and `build` (PNPM/Nx).
+2: Coverage (unit+integration) threshold ≥85% enforced in Jest config.
+3: Single `pnpm validate` script runs lint → unit+integration tests → build.
+4: `pnpm e2e` documented as required before release (manual gate).
+5: Quality gate documented: contributors run `pnpm validate` + `pnpm e2e` locally before merge.
 
 Story 1.3 Canary Health-Check and Static Deploy
 
@@ -169,27 +154,27 @@ Acceptance Criteria
 3: Manual static deploy path documented (e.g., Vercel/Netlify CLI or drag-and-drop) with SPA fallback; environment config documented.
 4: Successful manual preview available (local serve/preview and, if deployed, a platform preview URL).
 
-Story 1.4 Testing Baseline and E2E Harness
+Story 1.4 Testing Baseline (Unit, Integration, E2E Harness)
 
 Acceptance Criteria
-1: Jest configured for unit tests in libs (`engine`, `ai`, `shared`) with an example passing test per lib.
-2: @testing-library/angular configured with a sample component test in `apps/ui`.
-3: Playwright installed in `apps/e2e` with a smoke test visiting `/health`.
-4: Local scripts execute unit and e2e smoke tests; failures must be resolved before merging (documented in CONTRIBUTING).
+1: Jest configured for unit & integration tests (separate folder conventions or naming patterns) in `libs/engine`, `libs/shared`, and `apps/ui`.
+2: @testing-library/angular sample integration test exercising move placement & computer response.
+3: Playwright configured in `apps/ui-e2e` with basic `/health` smoke test.
+4: Scripts differentiate unit vs integration vs e2e; CONTRIBUTING notes execution order.
 
 Story 1.5 Documentation, ADRs, and Licensing
 
 Acceptance Criteria
 1: ADR directory created under `docs/architecture/` with an initial ADR for tech stack and project structure.
 2: LICENSE and NOTICE files added to the repo; brief legal section in README.
-3: Credits generator placeholder script planned and a task stub created (actual data generation in Epic 5).
-4: Contributing guidelines drafted: branch strategy, commit convention, and PR checks.
+3: Contributing guidelines include testing layers (unit/integration/e2e) expectations.
+4: Credits page placeholder or note captured (implemented in Epic 4).
 
-## Epic 2: Core Engine & State
+## Epic 2: Core Engine & Perfect Computer Opponent
 
 Goal
 
-Implement a robust, well-tested game engine and state layer supporting both 3x3 (k=3) and 6x6 (k=4), with clear interfaces, legal move validation, terminal-state detection, and undo/redo history, enabling seamless integration with UI and AI.
+Implement concise engine (3x3 k=3, 7x7 k=4) with legal move validation, terminal detection, and perfect computer move via exhaustive search + memoization. Undo/redo/history excluded.
 
 Story 2.1 Engine Types and Interfaces
 
@@ -207,10 +192,10 @@ Acceptance Criteria
 3: Include tie/draw detection when no legal moves remain and no winner.
 4: Unit tests cover all single and multiple winning scenarios, edges, and no-win cases.
 
-Story 2.3 K-in-Row Logic for 6x6 (k=4)
+Story 2.3 K-in-Row Logic for 7x7 (k=4)
 
 Acceptance Criteria
-1: Implement detection for contiguous 4-in-a-row across rows, columns, and both diagonals on 6x6.
+1: Implement detection for contiguous 4-in-a-row across rows, columns, and both diagonals on 7x7.
 2: Ensure algorithm scales without degrading performance unnecessarily; avoid unnecessary allocations.
 3: Return all winning line coordinates similar to 3x3.
 4: Unit tests include overlapping threats, multiple win-line scenarios, edges, and near-miss cases.
@@ -230,18 +215,12 @@ Acceptance Criteria
 2: Terminal state includes the final board, last move, and winning line (if any).
 3: Unit tests cover win, draw, and ongoing scenarios across both board sizes.
 
-Story 2.6 Undo/Redo History Service
-
-Acceptance Criteria
-1: Implement a history service in `libs/engine` or `libs/shared` that tracks past states and supports `undo()` and `redo()`.
-2: Redo stack invalidates when a new move is applied after an undo.
-3: No hard cap required for MVP; accept an optional max depth in constructor for tests.
-4: Unit tests cover alternating undo/redo sequences, boundary conditions, and redo invalidation.
+Story 2.6 (Removed) Undo/Redo History — out of scope in simplified plan.
 
 Story 2.7 Configuration and Mode Selection
 
 Acceptance Criteria
-1: `GameConfig` supports board size (3x3 or 6x6), k value (3 or 4), and initial player.
+1: `GameConfig` supports board size (3x3 or 7x7), k value (3 or 4), and initial player.
 2: Engine exposes a factory to create an `Engine` with a given `GameConfig`; config is surfaced in `GameState` for UI/tests.
 3: Unit tests verify both modes initialize correctly and propagate config through state transitions.
 
@@ -249,7 +228,7 @@ Story 2.8 Performance and Allocation Hygiene
 
 Acceptance Criteria
 1: Critical inner loops avoid per-iteration allocations; use typed arrays or flat arrays where beneficial.
-2: Add micro-bench tests (or timing assertions) guarding regressions for win detection on 6x6.
+2: Add micro-bench tests (or timing assertions) guarding regressions for win detection on 7x7.
 3: Lint rules enforce immutability patterns and small function sizes in engine code.
 
 Story 2.9 Documentation and Examples
@@ -259,245 +238,117 @@ Acceptance Criteria
 2: Add illustrative unit tests as examples of engine usage for both board sizes.
 3: ADR entry updated to capture engine design choices (k-in-row scanning strategy, immutability approach).
 
-## Epic 3: AI Players & Performance
+## Epic 3: UI Integration
 
 Goal
 
-Deliver Easy/Medium/Hard AI players that meet deterministic behavior definitions and performance targets: Easy/Medium use seeded randomness ratios (50%/25%) blended with strategy, Hard plays the game-theoretic optimal move via minimax with alpha-beta pruning and a transposition table, executed in Web Workers to keep the UI responsive.
+Integrate engine + perfect computer opponent into responsive UI with minimal controls and accessibility.
 
-Story 3.1 AI Interfaces and Player Abstractions
-
+Story 3.1 UI Shell & Routing
 Acceptance Criteria
-1: Define `AIPlayer` interface in `libs/ai` with `getMove(state, config, options) => Promise<Move>`.
-2: Define `Difficulty` enum (`easy`, `medium`, `hard`) and an orchestrator `getAIMoveByDifficulty(difficulty, state, config, prng, options)`.
-3: Tie-breaker policy implemented and configurable in options: quickest win, then minimize opponent’s best outcome, then center/corners preference, then lowest index.
-4: Public API barrel for `libs/ai` exports interfaces and orchestrator; TS docs added.
+1: Routes: `/` (game), `/health`, `/credits`.
+2: Board centered, controls inline (size, mode, new game).
+3: Layout responsive (mobile & desktop) maintaining square cells.
 
-Story 3.2 Seeded PRNG and Deterministic Randomness
-
+Story 3.2 Board & Interaction
 Acceptance Criteria
-1: Integrate `seedrandom` to create a PRNG from a provided seed (string/number); do not use `Math.random` inside AI.
-2: Easy: 50% probability selects uniformly from legal moves using PRNG; otherwise delegates to strategy engine; ratio controlled via constants.
-3: Medium: 25% probability selects uniformly at random; otherwise delegates to strategy engine.
-4: Unit tests run 200 selections per difficulty with fixed seeds and assert random-choice rate within ±5% tolerance of target ratio; runs are reproducible across executions with the same seed.
+1: Grid renders correct size; clicking empty cell applies move.
+2: Current player indicator updates.
+3: Terminal win highlights winning line; draw shows message; disables further moves.
 
-Story 3.3 Hard AI: Minimax + Alpha-Beta + Transposition Table
-
+Story 3.3 Mode & Size Controls
 Acceptance Criteria
-1: Implement perfect-play search that returns an optimal move for both 3x3 (k=3) and 6x6 (k=4).
-2: Use alpha-beta pruning and iterative deepening; stop conditions ensure completion within targets; result is still optimal for tested positions.
-3: Add a transposition table keyed via Zobrist hashing over board cells and player-to-move; store evaluated scores and best moves by depth/bounds.
-4: Unit tests verify known perfect-play outcomes on canonical puzzles (forced win, forced draw) for both sizes; tie-breakers applied deterministically when multiple optimal moves exist.
+1: Toggle Human vs Human / Human vs Computer.
+2: Change board size triggers new game.
+3: New Game resets state.
 
-Story 3.4 Web Worker Integration and Cancellation
-
+Story 3.4 Accessibility
 Acceptance Criteria
-1: Create an AI Web Worker (under `libs/ai` or `apps/ui` workers folder) that runs the search off the main thread; main thread sends `{state, config, difficulty, seed}` and receives `{move, meta}`.
-2: Support cancellation/abort (e.g., via `AbortController` or message protocol). New requests cancel any in-flight computation.
-3: If workers are unavailable, fall back to main-thread computation with a warning flag in the result.
-4: Component/integration tests validate that UI remains interactive during AI computation and that cancelled computations do not apply stale moves.
+1: ARIA live region for turn & result announcements.
+2: Reduced motion disables animations.
+3: Focus order logical; controls keyboard accessible.
 
-Story 3.5 Performance Targets and Benchmark Harness
-
+Story 3.5 Optional Visual Enhancements
 Acceptance Criteria
-1: Add a benchmark script that evaluates representative mid-game positions for both board sizes; report p50 and p95 latencies for Hard.
-2: Meet latency targets: <100ms p50 and <500ms p95 for Hard AI decisions on typical hardware assumptions; if a scenario exceeds targets, a spinner/progress indicator is shown and logged.
-3: Document tuning knobs: move ordering heuristics, aspiration windows, TT size limits, and iterative deepening budgets.
+1: (Optional) Lazy-load Babylon.js OR pure CSS fallback only.
+2: Animations ≤300ms and skipped when reduced motion.
 
-Story 3.6 Difficulty Orchestration and Tie-Breakers
-
+Story 3.6 Minimal Tests
 Acceptance Criteria
-1: Implement difficulty wrapper that selects random vs strategic path based on ratio and seed, then applies tie-breakers to break equivalence among strategic moves.
-2: Tie-breakers include a center/corners bias; for 6x6 define center and corners generically based on board size.
-3: Unit tests verify tie-breaker ordering using crafted positions that yield multiple optimal moves.
+1: Component test covers rendering & simple X win scenario.
+2: Engine test ensures computer chooses optimal forced win when available.
 
-Story 3.7 AI vs AI and Reproducibility
-
+Story 3.7 Docs Update
 Acceptance Criteria
-1: Provide an AI vs AI runner utility that plays full games deterministically given a seed and difficulty pair.
-2: Unit/integration tests confirm identical outcomes across runs when seeds and configs match.
-3: Expose optional move delay for visualization; ensure delay does not affect determinism.
+1: README updated with usage & controls.
+2: Short note on optional 3D / reduced motion.
 
-Story 3.8 Transposition Table Reuse and Memory Boundaries
-
-Acceptance Criteria
-1: Reuse the transposition table across successive moves of the same game to accelerate search; reset on new game.
-2: Enforce a configurable upper bound on TT size; implement LRU or depth-preferential eviction when exceeded.
-3: Tests verify TT reuse improves measured nodes/second and respects memory limits.
-
-Story 3.9 Documentation and ADRs
-
-Acceptance Criteria
-1: `libs/ai` README describes public APIs, difficulty semantics, seed handling, worker usage, and tuning parameters.
-2: ADR documents search design and trade-offs (alpha-beta, TT, Zobrist, iterative deepening) and performance results.
-3: Add example snippets showing seeded runs and difficulty orchestration.
-
-## Epic 4: UI Integration & 3D Experience
+## Epic 4: Credits & Release
 
 Goal
 
-Build a responsive Angular UI that integrates the engine and AI, renders animated 3D marks and a board lock using Babylon.js with a CSS fallback, preserves accessibility (ARIA live announcements, reduced-motion), and meets performance and asset budgets.
+Provide Credits page, minimal docs, and manual release workflow.
 
-Story 4.1 UI Shell, Routing, and Layout
+### (Removed) Prior detailed UI/AI stories (settings modal, multiple difficulty levels, advanced animations) no longer applicable in simplified scope.
 
+Story 4.1 Credits Page
 Acceptance Criteria
-1: Routes exist for `/` (game), `/health`, and `/credits` (stub if not implemented yet); unknown routes fallback to `/`.
-2: Responsive layout with Tailwind sets a fixed-aspect board area, header with mode indicators, and a footer containing a Credits link.
-3: Mobile and desktop breakpoints verified; board maintains square cells and proper hit targets.
+1: `/credits` lists contributors & dependency name/version/license.
+2: Links to LICENSE & NOTICE files.
+3: Accessible table or list semantics.
 
-Story 4.2 Board and Cell Components
-
+Story 4.2 Documentation Completion
 Acceptance Criteria
-1: `BoardGrid` renders NxN cells based on current config; `Cell` handles click/tap to dispatch a move.
-2: Current player indicator and minimal status bar display turn, board size, and difficulty.
-3: Visual winning-line highlight appears on terminal win; draw shows a neutral message.
-4: Component tests verify rendering, click interactions, and win highlight logic.
+1: README: setup, run, test, build, deploy instructions.
+2: Short architecture note (engine + exhaustive search rationale).
+3: Accessibility & reduced motion note.
 
-Story 4.3 Controls and Settings Modal
-
+Story 4.3 Release Packaging
 Acceptance Criteria
-1: Settings modal allows choosing board size (3x3, 6x6), difficulty (Easy/Medium/Hard), and optional seed input.
-2: In-game controls: Undo, Redo, Restart, and a button to open Settings.
-3: Restart confirms and re-initializes state with the current settings.
-4: Component tests verify settings persistence and control actions.
+1: Production build served locally (verify `/`, `/health`, `/credits`).
+2: Manual deploy steps (e.g., Vercel/Netlify) documented.
 
-Story 4.4 Accessibility and Announcements
-
+Story 4.4 Cross-Browser Smoke
 Acceptance Criteria
-1: Add an ARIA live region announcing: game start, turn changes, invalid moves, wins/draws, and board lock.
-2: Settings and result overlays manage focus correctly (trap focus, restore focus on close).
-3: Colors meet WCAG AA contrast for text and essential UI elements; documented tokens in Tailwind config.
-4: Tests verify live announcements and focus behavior with @testing-library/angular.
+1: Manual verification on Chrome, Firefox, Edge, Safari + one mobile viewport.
+2: Note any visual issues.
 
-Story 4.5 State Wiring and Engine Integration (NgRx)
-
+Story 4.5 Bundle Size Note
 Acceptance Criteria
-1: NgRx store slices for `game` and `settings`; actions for apply move, undo, redo, restart, and update settings.
-2: Selectors expose board, current player, terminal state, and winning line for components.
-3: Applying a move uses the engine library and updates immutable state; invalid moves surface a user-friendly message.
-4: Integration tests validate store → components roundtrip and undo/redo behavior.
+1: Record approximate initial bundle size (goal <500KB gzip, or <1MB if Babylon.js used).
+2: Identify large deps for possible future optimization.
 
-Story 4.6 AI Integration and Cancellation
+### (Removed) Prior extended release/test stories (Playwright matrix, AI vs AI replays, advanced performance & asset budgets) out of scope.
 
-Acceptance Criteria
-1: An effect listens for AI turns and requests a move via the AI worker/orchestrator, passing difficulty and seed.
-2: New user actions (undo/restart/settings change) cancel any in-flight AI calculation; no stale moves are applied.
-3: UI indicates AI thinking (spinner or subtle status) when computation exceeds a brief threshold (e.g., 50ms).
-4: Integration tests simulate AI turns and cancellation to ensure UI remains responsive and correct.
-
-Story 4.7 3D Marks Rendering with Babylon.js
-
-Acceptance Criteria
-1: Lazy-load a Babylon.js-powered renderer for X/O marks placed in a WebGL canvas overlay beneath UI controls.
-2: Mark placement plays an entry animation ≤300ms; multiple marks preserve 60fps during interactions on typical hardware.
-3: If WebGL is unavailable or reduced-motion is enabled, fall back to CSS-based 3D transforms/flat icons.
-4: Bundle analysis shows the Babylon chunk is lazily loaded and within the asset budget (≤800KB gzip) and initial UI bundle remains <2MB.
-
-Story 4.8 3D Board Lock and Terminal Overlay
-
-Acceptance Criteria
-1: On terminal state, display a brief board lock animation indicating no further input is accepted.
-2: The lock effect does not impair readability of the final board; inputs are disabled until a new game starts.
-3: Reduced-motion mode replaces the animation with a static lock style.
-4: Tests verify input is disabled after terminal state and re-enabled on restart.
-
-Story 4.9 Reduced-Motion and Fallback Behavior
-
-Acceptance Criteria
-1: All motion (mark entry, win highlight, board lock) respects `prefers-reduced-motion`; provide non-animated equivalents.
-2: A runtime WebGL capability check toggles between Babylon and CSS fallback automatically.
-3: Tests verify reduced-motion behavior and fallback selection paths.
-
-Story 4.10 Performance Hygiene and Asset Budgets
-
-Acceptance Criteria
-1: Avoid layout thrash: use CSS transforms for animations; batch DOM updates in change detection-friendly ways.
-2: Add a script or doc steps to check bundle sizes and Babylon chunk gzip sizes; verify against NFR budgets.
-3: Manual checks confirm smooth interactions on mid-range devices; note findings in a short performance doc.
-
-Story 4.11 Documentation and UX Copy
-
-Acceptance Criteria
-1: Update README with UI controls, settings, and how to enable/disable 3D effects.
-2: Add brief in-app help text/tooltips for difficulty definitions and board lock meaning.
-3: Document fallback modes, accessibility behaviors, and performance budgets in `/docs`.
-
-## Epic 5: E2E, Credits, Docs & Release
+## Epic 5: Integration & E2E Testing
 
 Goal
 
-Deliver high-confidence end-to-end coverage across modes and sizes, implement the Credits/About page with generated attributions, finish documentation, and package a manual release with verified performance budgets and cross-browser checks.
+Provide confidence that UI, engine, and computer opponent work together across core scenarios (health, basic gameplay, accessibility) without reintroducing prior complex AI features.
 
-Story 5.1 Playwright Harness and Test Matrix
-
+Story 5.1 Integration Test Suite
 Acceptance Criteria
-1: Playwright config supports headless and headed runs, traces on failure, and per-test timeouts suitable for AI.
-2: Test matrix covers board sizes (3x3, 6x6) × difficulties (Easy, Medium, Hard) for H vs AI and AI vs AI.
-3: Tests accept seed via URL or query param to ensure determinism; helpers set `prefers-reduced-motion` for specific suites.
-4: Smoke suite runs a minimal path; regression suite covers full flows; tags or projects separate them.
+1: Integration tests cover: move application sequence (X human then computer optimal reply), win detection highlight, draw scenario creation.
+2: Live region announcements asserted via DOM queries/mocks.
+3: Reduced-motion flag test ensures animations disabled path still functional.
 
-Story 5.2 Human vs AI Flows
-
+Story 5.2 Playwright Smoke & Gameplay
 Acceptance Criteria
-1: Start game, place legal moves, observe current player changes, and status updates.
-2: Undo/Redo cycles update board and status correctly.
-3: Terminal detection highlights winning line or shows draw; Restart returns to a fresh game with same settings.
-4: Run for both sizes and all difficulties (with seeds) and assert no console errors.
+1: `/health` smoke test passes.
+2: 3x3 Human vs Computer scenario producing a forced win for X validated (final board & result text).
+3: 7x7 scenario reaching draw validated (board full, draw message, no active cells).
 
-Story 5.3 AI vs AI Deterministic Replays
-
+Story 5.3 Accessibility & Reduced Motion E2E
 Acceptance Criteria
-1: Launch AI vs AI with fixed seeds; capture final outcome (winner/draw) and total plies.
-2: Repeat run yields identical outcome and plies for the same seed/config.
-3: Optional artifact: store a short JSON trace for a single canonical scenario to compare locally.
+1: Run with emulated reduced-motion; ensure no animation-related timeouts.
+2: ARIA live region contains at least turn change and final result messages.
 
-Story 5.4 Reduced-Motion and WebGL Fallback Tests
-
+Story 5.4 Deterministic Computer Move Assertions
 Acceptance Criteria
-1: A suite forces `prefers-reduced-motion` and asserts CSS fallback is used (no WebGL context created).
-2: A suite simulates WebGL unavailable and asserts CSS fallback renders marks and lock legibly.
-3: Performance-sensitive animations are skipped or shortened under reduced-motion; assertions verify.
+1: Predefined partial board states loaded (via helper) produce expected computed move (cell index) in both board sizes.
+2: Failures output diff of expected vs actual move for debugging.
 
-Story 5.5 Credits Data Generator
-
+Story 5.5 Documentation & Scripts
 Acceptance Criteria
-1: Add a Node script `tools/generate-credits.ts` that reads workspace package manifests and lockfile to emit `credits.json` with fields: name, version, license, homepage/repository.
-2: Validate presence of license strings; if missing, mark as `UNKNOWN` and list for manual follow-up.
-3: Place `credits.json` in a location consumable by the UI (e.g., `apps/ui/src/assets/credits.json`).
-4: Document how to run the generator; add it to a local script (e.g., `pnpm credits:gen`).
-
-Story 5.6 Credits/About Page Implementation
-
-Acceptance Criteria
-1: The `/credits` route renders contributors, project links (repo, LICENSE, NOTICE), and a table/list from `credits.json`.
-2: Each dependency shows name, version, license, and links out; accessibility: table is keyboard-navigable and readable.
-3: Component tests verify rendering of sample `credits.json` and external links presence.
-
-Story 5.7 Documentation Completion
-
-Acceptance Criteria
-1: README finalized: quick start, scripts, architecture overview, and manual deploy steps.
-2: Developer Guide: TDD approach, testing pyramid, seeded runs, and debugging workers.
-3: Architecture docs: engine and AI design, NgRx wiring, 3D rendering approach; ADRs updated to final state.
-4: Accessibility statement and Performance notes included in `/docs`.
-
-Story 5.8 Release Packaging and Manual Deploy
-
-Acceptance Criteria
-1: Produce a production build artifact; verify `/health`, game, and `/credits` paths with a local static server.
-2: Manual deploy steps documented for Vercel CLI or Netlify CLI with SPA fallback; environment variables documented.
-3: A short release checklist enumerates validate → build → smoke → deploy → verify steps; stored in `/docs/release-checklist.md`.
-
-Story 5.9 Cross-Browser and Device Verification
-
-Acceptance Criteria
-1: Manually verify on Chrome, Firefox, Safari, and Edge latest stable; capture any browser quirks and mitigations.
-2: Verify mobile viewport interactions (tap targets, scroll prevention) on at least one mobile browser.
-3: Document findings and any workarounds; file backlog items if non-blocking issues remain.
-
-Story 5.10 Bundle/Asset Budget Compliance
-
-Acceptance Criteria
-1: Run bundle analysis and report initial route bundle size (<2MB) and Babylon chunk gzip size (≤800KB).
-2: Confirm total additional 3D/animation assets ≤300KB gzip.
-3: If budgets are exceeded, identify optimizations and track as tasks; document current numbers in `/docs/performance.md`.
+1: README updated with how to run integration vs e2e tests separately.
+2: CONTRIBUTING clarifies when e2e suite must be executed (pre-release / pre-merge for gameplay changes).

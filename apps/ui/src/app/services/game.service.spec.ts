@@ -54,31 +54,17 @@ describe('GameService', () => {
     });
   });
 
-  describe('Computer AI Integration', () => {
-    it('should trigger computer move after human move', (done) => {
-      service.makeMove(0); // Human plays X at position 0
-      
-      // Computer should play after a short delay
-      setTimeout(() => {
-        const state = service.gameState();
-        const occupiedCells = state.board.filter(cell => cell !== null);
-        expect(occupiedCells.length).toBe(2); // Human + Computer moves
-        expect(state.currentPlayer).toBe('X'); // Back to human's turn
-        done();
-      }, 600);
-    });
-  });
-
   describe('Game Flow', () => {
     it('should detect win condition', () => {
       // X wins on top row: positions 0, 1, 2
       service.makeMove(0); // X
-      service.makeMove(3); // O (computer might change this, but we'll test the logic)
+      service.makeMove(3); // O
       service.makeMove(1); // X
       service.makeMove(4); // O
       service.makeMove(2); // X wins
       
-      expect(service.status()).toBe('won');
+      const state = service.gameState();
+      expect(state.status).toBe('won');
       expect(service.winner()).toBe('X');
       expect(service.isTerminal()).toBe(true);
     });

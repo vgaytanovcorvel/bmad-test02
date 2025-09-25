@@ -1,128 +1,103 @@
 import { Component, ChangeDetectionStrategy, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { GameService } from '../../services/game.service';
+import { formatPlayerSymbol } from '@libs/shared';
 
 @Component({
   selector: 'app-game-board',
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="game-board" [attr.data-testid]="'game-board'">
-      <div class="game-status" [attr.data-testid]="'game-status'">
-        @if (gameService.isTerminal()) {
-          @if (gameService.winner()) {
-            Player {{ gameService.winner() }} wins! 🎉
-          } @else {
-            It's a draw! 🤝
-          }
-        } @else {
-          Current player: {{ gameService.currentPlayer() }}
-        }
-      </div>
-      
-      <div class="board">
-        @for (cell of cells(); track $index) {
-          <button
-            class="cell"
-            [class.occupied]="cell !== ''"
-            [class.winning]="isWinningCell($index)"
-            [disabled]="gameService.isCellDisabled($index)"
-            (click)="handleCellClick($index)"
-            [attr.data-testid]="'cell-' + $index"
-          >
-            {{ cell }}
-          </button>
-        }
-      </div>
-      
-      <button 
-        class="reset-button"
-        (click)="gameService.resetGame()"
-        [attr.data-testid]="'reset-button'"
-      >
-        Reset Game
-      </button>
+    <div 
+      class="game-board" 
+      [class.board-3x3]="boardSize() === 3"
+      [class.board-4x4]="boardSize() === 4"
+      [attr.data-testid]="'game-board'"
+    >
+      @for (cell of boardCells(); track $index) {
+        <button
+          class="cell"
+          [class.occupied]="cell !== null"
+          [class.winning]="isWinningCell($index)"
+          [disabled]="isTerminal() || cell !== null"
+          (click)="handleCellClick($index)"
+          [attr.data-testid]="'cell-' + $index"
+          [attr.aria-label]="getCellAriaLabel($index)"
+        >
+          {{ formatPlayerSymbol(cell) }}
+        </button>
+      }
     </div>
   `,
   styles: [`
     .game-board {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 1rem;
-      padding: 2rem;
+      @apply grid gap-2 p-4 bg-white rounded-lg shadow-lg mx-auto;
+      
+      width: var(--game-board-size);
+      height: var(--game-board-size);
+      
+      &.board-3x3 {
+        @apply grid-cols-3;
+      }
+      
+      &.board-4x4 {
+        @apply grid-cols-4;
+      }
     }
-    
-    .game-status {
-      font-size: 1.2rem;
-      font-weight: bold;
-    }
-    
-    .board {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 2px;
-      background-color: #333;
-      padding: 2px;
-    }
-    
+
     .cell {
-      width: 80px;
-      height: 80px;
-      background-color: white;
-      border: none;
-      font-size: 2rem;
-      font-weight: bold;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    
-    .cell:hover:not(:disabled) {
-      background-color: #f0f0f0;
-    }
-    
-    .cell:disabled {
-      cursor: not-allowed;
-    }
-    
-    .cell.winning {
-      background-color: #90EE90;
-    }
-    
-    .reset-button {
-      padding: 0.5rem 1rem;
-      font-size: 1rem;
-      background-color: #007bff;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    
-    .reset-button:hover {
-      background-color: #0056b3;
+      @apply bg-gray-100 border-2 border-gray-300 rounded-md text-3xl font-bold
+             hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500
+             transition-colors duration-150 flex items-center justify-center;
+      
+      aspect-ratio: 1;
+      min-height: var(--cell-size);
+      
+      &:disabled {
+        @apply cursor-not-allowed opacity-60;
+      }
+      
+      &.occupied {
+        @apply bg-gray-200 cursor-not-allowed;
+      }
+      
+      &.winning {
+        @apply bg-green-200 border-green-400 text-green-800;
+      }
     }
   `],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class GameBoardComponent {
-  gameService = inject(GameService);
+  private gameService = inject(GameService);
   
-  cells = computed(() => {
-    const board = this.gameService.gameState().board;
-    return board.map(cell => cell || '');
-  });
+  // Reactive state from service
+  gameState = this.gameService.gameState;
+  boardCells = computed(() => this.gameState().board);
+  boardSize = computed(() => Math.sqrt(this.boardCells().length));
+  isTerminal = computed(() => this.gameService.isTerminal());
+  winningLine = computed(() => this.gameState().winningLine);
   
-  winningLine = computed(() => this.gameService.gameState().winningLine);
-
-  handleCellClick(index: number): void {
-    this.gameService.makeMove(index);
+  // Utility function for template
+  protected formatPlayerSymbol = formatPlayerSymbol;
+  
+  handleCellClick(position: number): void {
+    this.gameService.makeMove(position);
   }
-
-  isWinningCell(index: number): boolean {
+  
+  isWinningCell(position: number): boolean {
     const winningLine = this.winningLine();
-    return winningLine ? winningLine.includes(index) : false;
+    return winningLine ? winningLine.includes(position) : false;
+  }
+  
+  getCellAriaLabel(position: number): string {
+    const cell = this.boardCells()[position];
+    const row = Math.floor(position / this.boardSize()) + 1;
+    const col = (position % this.boardSize()) + 1;
+    
+    if (cell) {
+      return `Cell row ${row} column ${col}, occupied by ${cell}`;
+    }
+    return `Cell row ${row} column ${col}, empty, click to place mark`;
   }
 }

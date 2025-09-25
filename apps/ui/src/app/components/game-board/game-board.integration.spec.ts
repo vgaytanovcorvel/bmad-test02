@@ -1,14 +1,16 @@
-import { TestBed, waitForAsync } from '@angular/core/testing';
-import { render, screen, fireEvent, waitFor } from '@testing-library/angular';
+import { TestBed } from '@angular/core/testing';
+import { render, screen, fireEvent, RenderResult } from '@testing-library/angular';
 import { GameBoardComponent } from './game-board.component';
 import { GameService } from '../../services/game.service';
 
 describe('GameBoard Integration Tests', () => {
   let gameService: GameService;
 
+  let fixture: RenderResult<GameBoardComponent>;
+
   beforeEach(async () => {
     jest.useFakeTimers();
-    await render(GameBoardComponent);
+    fixture = await render(GameBoardComponent);
     gameService = TestBed.inject(GameService);
   });
 
@@ -16,111 +18,91 @@ describe('GameBoard Integration Tests', () => {
     jest.useRealTimers();
   });
 
-  it('should complete full game workflow with human and computer moves', waitForAsync(async () => {
+  it('should complete full game workflow with human moves', () => {
     // Initial state: empty board, X to play
-    expect(screen.getByTestId('game-status').textContent).toContain('Current player: X');
+    expect(gameService.gameState().currentPlayer).toBe('X');
     
     // Human move: Click first cell
     fireEvent.click(screen.getByTestId('cell-0'));
-    expect(screen.getByTestId('cell-0').textContent).toContain('X');
+    expect(screen.getByTestId('cell-0').textContent).toContain('❌');
     
-    // Fast-forward time to trigger computer move
-    jest.advanceTimersByTime(600);
-    
-    // Wait for computer response
-    await waitFor(() => {
-      const occupiedCells = screen.getAllByRole('button').filter(btn => 
-        btn.textContent === 'X' || btn.textContent === 'O'
-      );
-      expect(occupiedCells.length).toBe(2);
-    }, { timeout: 1000 });
-    
-    // Verify computer made a move
-    const boardState = gameService.gameState();
-    expect(boardState.moveHistory.length).toBe(2);
-    expect(boardState.currentPlayer).toBe('X'); // Back to human's turn
-  }));
-
-  it('should handle complete game to victory', waitForAsync(async () => {
-    // Play a sequence that leads to X winning
-    // X plays top row: 0, 1, 2 with computer blocking or playing elsewhere
-    
-    // First move
-    fireEvent.click(screen.getByTestId('cell-0'));
-    expect(screen.getByTestId('cell-0').textContent).toContain('X');
-    
-    // Fast-forward time to trigger computer move
-    jest.advanceTimersByTime(600);
-    
-    // Wait for computer response
-    await waitFor(() => {
-      const occupiedCells = screen.getAllByRole('button').filter(btn => 
-        btn.textContent === 'X' || btn.textContent === 'O'
-      );
-      expect(occupiedCells.length).toBe(2);
-    }, { timeout: 1000 });
+    // Verify game state updated correctly
+    let boardState = gameService.gameState();
+    expect(boardState.moveHistory.length).toBe(1);
+    expect(boardState.currentPlayer).toBe('O'); // Should switch to O
     
     // Second human move
     fireEvent.click(screen.getByTestId('cell-1'));
-    expect(screen.getByTestId('cell-1').textContent).toContain('X');
+    expect(screen.getByTestId('cell-1').textContent).toContain('⭕');
     
-    // Fast-forward time to trigger second computer move
-    jest.advanceTimersByTime(600);
-    
-    // Wait for second computer response
-    await waitFor(() => {
-      const occupiedCells = screen.getAllByRole('button').filter(btn => 
-        btn.textContent === 'X' || btn.textContent === 'O'
-      );
-      expect(occupiedCells.length).toBe(4);
-    }, { timeout: 1000 });
-    
-    // Third human move - try to win
-    if (!screen.getByTestId('cell-2').textContent) {
-      fireEvent.click(screen.getByTestId('cell-2'));
-      
-      // Check if X won
-      await waitFor(() => {
-        const status = screen.getByTestId('game-status');
-        if (status.textContent?.includes('wins')) {
-          expect(status.textContent).toContain('Player X wins!');
-        }
-      }, { timeout: 100 });
-    }
-  }));
+    // Verify game state updated again
+    boardState = gameService.gameState();
+    expect(boardState.moveHistory.length).toBe(2);
+    expect(boardState.currentPlayer).toBe('X'); // Should switch back to X
+  });
 
-  it('should handle game reset functionality', waitForAsync(async () => {
+  it('should handle complete game to victory', () => {
+    // Play a sequence that leads to X winning
+    // X plays top row: 0, 1, 2 to win
+    
+    // First move - X
+    fireEvent.click(screen.getByTestId('cell-0'));
+    expect(screen.getByTestId('cell-0').textContent).toContain('❌');
+    
+    // Second move - O
+    fireEvent.click(screen.getByTestId('cell-3'));
+    expect(screen.getByTestId('cell-3').textContent).toContain('⭕');
+    
+    // Third move - X
+    fireEvent.click(screen.getByTestId('cell-1'));
+    expect(screen.getByTestId('cell-1').textContent).toContain('❌');
+    
+    // Fourth move - O
+    fireEvent.click(screen.getByTestId('cell-4'));
+    expect(screen.getByTestId('cell-4').textContent).toContain('⭕');
+    
+    // Fifth move - X winning move
+    fireEvent.click(screen.getByTestId('cell-2'));
+    expect(screen.getByTestId('cell-2').textContent).toContain('❌');
+    
+    // Check if X won
+    const boardState = gameService.gameState();
+    expect(boardState.status).toBe('won');
+    expect(boardState.winner).toBe('X');
+    expect(boardState.winningLine).toEqual([0, 1, 2]);
+  });
+
+  it('should handle game reset functionality', () => {
     // Make some moves
     fireEvent.click(screen.getByTestId('cell-0'));
-    expect(screen.getByTestId('cell-0').textContent).toContain('X');
+    expect(screen.getByTestId('cell-0').textContent).toContain('❌');
     
-    // Fast-forward time to trigger computer move
-    jest.advanceTimersByTime(600);
+    fireEvent.click(screen.getByTestId('cell-1'));
+    expect(screen.getByTestId('cell-1').textContent).toContain('⭕');
     
-    // Wait for computer move
-    await waitFor(() => {
-      const occupiedCells = screen.getAllByRole('button').filter(btn => 
-        btn.textContent === 'X' || btn.textContent === 'O'
-      );
-      expect(occupiedCells.length).toBe(2);
-    }, { timeout: 1000 });
+    // Reset game using service
+    gameService.resetGame();
     
-    // Reset game
-    fireEvent.click(screen.getByTestId('reset-button'));
+    // Trigger change detection
+    fixture.detectChanges();
     
-    // Verify reset
-    expect(screen.getByTestId('game-status').textContent).toContain('Current player: X');
+    // Verify reset through game state
+    const boardState = gameService.gameState();
+    expect(boardState.currentPlayer).toBe('X');
+    expect(boardState.moveHistory.length).toBe(0);
+    expect(boardState.status).toBe('playing');
     
-    // Check all cells are empty
+    // Check all cells are empty (should update after change detection)
     for (let i = 0; i < 9; i++) {
-      expect(screen.getByTestId(`cell-${i}`).textContent).toBe('');
+      const cellContent = screen.getByTestId(`cell-${i}`).textContent || '';
+      expect(cellContent.trim()).toBe('');
     }
-  }));
+  });
 
   it('should prevent moves on occupied cells', () => {
     // Make first move
     fireEvent.click(screen.getByTestId('cell-4'));
-    expect(screen.getByTestId('cell-4').textContent).toContain('X');
+    expect(screen.getByTestId('cell-4').textContent).toContain('❌');
     
     // Try to click same cell again
     const initialMoveCount = gameService.gameState().moveHistory.length;
@@ -139,22 +121,17 @@ describe('GameBoard Integration Tests', () => {
     expect(screen.getByTestId('cell-1')).not.toBeDisabled();
   });
 
-  it('should display appropriate game status messages', () => {
-    // Initial playing state
-    expect(screen.getByTestId('game-status').textContent).toContain('Current player: X');
+  it('should display appropriate cell accessibility information', () => {
+    // Initial playing state - check cell accessibility
+    expect(screen.getByTestId('cell-0').getAttribute('aria-label')).toContain('empty');
     
-    // After human move, should still show current player
+    // After human move, should update accessibility
     fireEvent.click(screen.getByTestId('cell-0'));
     
-    // Status should update appropriately based on game state
-    const status = screen.getByTestId('game-status');
-    const statusText = status.textContent || '';
+    // Cell should now show it's occupied
+    expect(screen.getByTestId('cell-0').getAttribute('aria-label')).toContain('X');
     
-    // Should show either current player or game result
-    expect(
-      statusText.includes('Current player:') || 
-      statusText.includes('wins!') || 
-      statusText.includes('draw!')
-    ).toBe(true);
+    // Other cells should still be accessible
+    expect(screen.getByTestId('cell-1').getAttribute('aria-label')).toContain('empty');
   });
 });

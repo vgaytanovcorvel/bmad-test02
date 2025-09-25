@@ -24,14 +24,9 @@ describe('GameBoardComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should render 9 cells', () => {
+  it('should render 9 cells for 3x3 board', () => {
     const cells = fixture.debugElement.queryAll(By.css('[data-testid^="cell-"]'));
     expect(cells.length).toBe(9);
-  });
-
-  it('should display current player status initially', () => {
-    const statusElement = fixture.debugElement.query(By.css('[data-testid="game-status"]'));
-    expect(statusElement.nativeElement.textContent).toContain('Current player: X');
   });
 
   it('should handle cell clicks by calling game service', () => {
@@ -43,37 +38,56 @@ describe('GameBoardComponent', () => {
     expect(makeMoveSpy).toHaveBeenCalledWith(0);
   });
 
-  it('should display reset button', () => {
-    const resetButton = fixture.debugElement.query(By.css('[data-testid="reset-button"]'));
-    expect(resetButton).toBeTruthy();
-  });
-
-  it('should handle reset game clicks', () => {
-    const resetGameSpy = jest.spyOn(gameService, 'resetGame');
-    const resetButton = fixture.debugElement.query(By.css('[data-testid="reset-button"]'));
-    
-    resetButton.nativeElement.click();
-    
-    expect(resetGameSpy).toHaveBeenCalled();
-  });
-
   it('should reflect game state changes', () => {
     // Make a move and verify UI updates
     gameService.makeMove(0);
     fixture.detectChanges();
     
     const firstCell = fixture.debugElement.query(By.css('[data-testid="cell-0"]'));
-    expect(firstCell.nativeElement.textContent.trim()).toBe('X');
+    expect(firstCell.nativeElement.textContent.trim()).toBe('❌');
+  });
+
+  it('should disable all cells when game is terminal', () => {
+    // Create a winning scenario
+    gameService.makeMove(0); // X
+    gameService.makeMove(3); // O
+    gameService.makeMove(1); // X
+    gameService.makeMove(4); // O
+    gameService.makeMove(2); // X wins
     
-    // Status should reflect current player change
-    const statusElement = fixture.debugElement.query(By.css('[data-testid="game-status"]'));
-    const statusText = statusElement.nativeElement.textContent;
+    fixture.detectChanges();
     
-    // Should show either current player or game result
-    expect(
-      statusText.includes('Current player:') || 
-      statusText.includes('wins!') || 
-      statusText.includes('draw!')
-    ).toBe(true);
+    const cells = fixture.debugElement.queryAll(By.css('button[disabled]'));
+    expect(cells.length).toBe(9);
+  });
+
+  it('should highlight winning cells', () => {
+    // Create a winning scenario: X wins with top row [0,1,2]
+    gameService.makeMove(0); // X
+    gameService.makeMove(3); // O
+    gameService.makeMove(1); // X
+    gameService.makeMove(4); // O
+    gameService.makeMove(2); // X wins
+    
+    fixture.detectChanges();
+    
+    const winningCells = fixture.debugElement.queryAll(By.css('.winning'));
+    expect(winningCells.length).toBe(3);
+  });
+
+  it('should have proper accessibility labels', () => {
+    const firstCell = fixture.debugElement.query(By.css('[data-testid="cell-0"]'));
+    const ariaLabel = firstCell.nativeElement.getAttribute('aria-label');
+    expect(ariaLabel).toContain('Cell row 1 column 1');
+    expect(ariaLabel).toContain('empty, click to place mark');
+  });
+
+  it('should update accessibility labels after moves', () => {
+    gameService.makeMove(0);
+    fixture.detectChanges();
+    
+    const firstCell = fixture.debugElement.query(By.css('[data-testid="cell-0"]'));
+    const ariaLabel = firstCell.nativeElement.getAttribute('aria-label');
+    expect(ariaLabel).toContain('occupied by X');
   });
 });

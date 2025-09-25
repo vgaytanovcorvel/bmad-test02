@@ -1,81 +1,99 @@
 import { Injectable, signal, computed } from '@angular/core';
-import { GameEngine, ComputerPlayer } from '@libs/engine';
-import { GameState, Move } from '@libs/shared';
+import { EngineFactory, Engine } from '@libs/engine';
+import { GameState, GameConfig, Move } from '@libs/shared';
 
 @Injectable({
   providedIn: 'root'
 })
 export class GameService {
-  private engine = new GameEngine();
-  private computer = new ComputerPlayer();
+  private engine!: Engine;
+  private _gameState = signal<GameState | null>(null);
   
-  private _gameState = signal<GameState>(this.engine.createInitialState());
-  
-  // Public readonly signals
-  gameState = computed(() => this._gameState());
+  // Public reactive state
+  gameState = computed(() => this._gameState() ?? this.createInitialState());
+  currentPlayer = computed(() => this.gameState().currentPlayer);
+  board = computed(() => this.gameState().board);
   isTerminal = computed(() => {
-    const state = this._gameState();
-    return state.status === 'won' || state.status === 'draw';
+    const state = this.gameState();
+    return state ? this.engine.isTerminal(state) : false;
   });
-  currentPlayer = computed(() => this._gameState().currentPlayer);
-  winner = computed(() => this._gameState().winner);
-  status = computed(() => this._gameState().status);
+  winner = computed(() => {
+    const state = this.gameState();
+    return state && this.isTerminal() ? this.engine.winner(state) : null;
+  });
+  winningLine = computed(() => this.gameState().winningLine);
+  legalMoves = computed(() => {
+    const state = this.gameState();
+    return state ? this.engine.legalMoves(state) : [];
+  });
+  status = computed(() => this.gameState().status);
 
-  makeMove(position: number): void {
-    const currentState = this._gameState();
-    
-    if (!this.engine.isValidMove(currentState, position)) {
-      return;
-    }
-
-    const move: Move = {
-      player: currentState.currentPlayer,
-      position,
-      timestamp: Date.now()
-    };
-
-    const newState = this.engine.processMove(currentState, move);
-    this._gameState.set(newState);
-
-    // If game is still playing and it's computer's turn, make computer move
-    if (newState.status === 'playing' && newState.currentPlayer === 'O') {
-      setTimeout(() => this.makeComputerMove(), 500); // Small delay for UX
-    }
+  constructor() {
+    this.startNewGame();
   }
 
-  private makeComputerMove(): void {
-    const currentState = this._gameState();
+  startNewGame(config?: GameConfig): void {
+    const gameConfig: GameConfig = config || {
+      boardSize: 3,
+      kInRow: 3,
+      firstPlayer: 'X',
+      mode: 'human-vs-human'
+    };
     
-    if (currentState.status !== 'playing' || currentState.currentPlayer !== 'O') {
-      return;
-    }
+    this.engine = EngineFactory.createEngine(gameConfig);
+    this._gameState.set(this.engine.initialState(gameConfig));
+  }
 
-    const position = this.computer.calculateNextMove(currentState);
+  makeMove(position: number): boolean {
+    const currentState = this.gameState();
+    if (!currentState || this.isTerminal()) return false;
     
-    if (position >= 0) {
+    try {
       const move: Move = {
-        player: 'O',
+        player: currentState.currentPlayer,
         position,
         timestamp: Date.now()
       };
-
-      const newState = this.engine.processMove(currentState, move);
+      const newState = this.engine.applyMove(currentState, move);
       this._gameState.set(newState);
+      return true;
+    } catch (error) {
+      console.error('Invalid move:', error);
+      return false;
     }
   }
 
   resetGame(): void {
-    this._gameState.set(this.engine.createInitialState());
+    const config = this.gameState().config;
+    this.startNewGame(config);
   }
 
   isCellDisabled(position: number): boolean {
-    const state = this._gameState();
-    return !this.engine.isValidMove(state, position);
+    const legalMoves = this.legalMoves();
+    return this.isTerminal() || !legalMoves.includes(position);
   }
 
   getCellValue(position: number): string {
-    const state = this._gameState();
-    const value = state.board[position];
+    const value = this.gameState().board[position];
     return value || '';
+  }
+
+  // Legacy method compatibility
+  isValidMove(state: GameState, position: number): boolean {
+    return this.engine.legalMoves(state).includes(position);
+  }
+
+  private createInitialState(): GameState {
+    if (!this.engine) {
+      const config: GameConfig = {
+        boardSize: 3,
+        kInRow: 3,
+        firstPlayer: 'X',
+        mode: 'human-vs-human'
+      };
+      this.engine = EngineFactory.createEngine(config);
+      return this.engine.initialState(config);
+    }
+    return this.gameState();
   }
 }

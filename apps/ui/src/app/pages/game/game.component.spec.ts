@@ -53,10 +53,11 @@ describe('GameComponent', () => {
     expect(buttons[2].textContent?.trim()).toBe('New Game');
   });
 
-  it('should render board placeholder', () => {
+  it('should render game board and status components', () => {
     const compiled = fixture.nativeElement as HTMLElement;
-    const placeholder = compiled.querySelector('.board-placeholder');
-    expect(placeholder).toBeTruthy();
-    expect(placeholder?.textContent).toContain('Game Board Component');
+    const gameBoard = compiled.querySelector('app-game-board');
+    const gameStatus = compiled.querySelector('app-game-status');
+    expect(gameBoard).toBeTruthy();
+    expect(gameStatus).toBeTruthy();
   });
 });

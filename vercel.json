@@ -1,0 +1,24 @@
+{
+  "version": 2,
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ],
+  "buildCommand": "npm run build:ui:static",
+  "outputDirectory": "dist/apps/ui/browser",
+  "framework": null,
+  "installCommand": "pnpm install",
+  "functions": {
+    "apps/ui/src/**/*.ts": {
+      "runtime": "@vercel/node"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}

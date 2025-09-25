@@ -1,0 +1,45 @@
+// Health component styles - using Tailwind utilities in template
+// Additional custom styles for enhanced interactions
+
+.info-item {
+  transition: all 0.2s ease-in-out;
+  
+  &:hover {
+    transform: translateX(4px);
+  }
+}
+
+// Build hash styling for better UX
+[data-testid="build-hash"] {
+  word-break: break-all;
+  -webkit-user-select: all;
+  -moz-user-select: all;
+  -ms-user-select: all;
+  user-select: all;
+  cursor: text;
+}
+
+// Status indicator pulse animation
+.status-dot {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: .5;
+  }
+}
+
+// Responsive adjustments for mobile
+@media (max-width: 640px) {
+  .health-card {
+    padding: 1.5rem;
+  }
+  
+  .app-info h1 {
+    font-size: 1.25rem;
+  }
+}

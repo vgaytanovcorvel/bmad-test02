@@ -226,13 +226,18 @@ pnpm nx e2e ui-e2e --reporter=html
 
 ### Production Build
 ```bash
+# Build UI with production optimizations and build hash injection
+npm run build:ui:prod
+
+# Alternative: Build all projects
 pnpm build
 ```
 
-Output: `dist/apps/ui/`
+Output: `dist/apps/ui/browser/` (static assets ready for hosting)
 - Optimized bundle with tree-shaking
 - Asset optimization and compression
 - Source maps for debugging
+- Build hash injection for version tracking
 - Bundle analysis available
 
 ### Build Configuration
@@ -240,6 +245,169 @@ Output: `dist/apps/ui/`
 - **Bundle Budget**: 500KB warning, 1MB error threshold  
 - **Optimization**: Full optimization in production mode
 - **SSR Ready**: Server-side rendering configuration included
+- **Build Hash**: Automatic injection for deployment tracking
+
+### Local Preview Testing
+```bash
+# Build and serve locally (recommended before deployment)
+npm run preview
+
+# Manual preview testing
+npm run build:ui:prod
+pnpm nx serve-static ui
+# Navigate to http://localhost:4200
+```
+
+### Static Hosting Deployment
+
+This application is configured for static hosting on Vercel, Netlify, or similar platforms with SPA (Single Page Application) routing support.
+
+#### Vercel Deployment
+
+**CLI Method (Recommended):**
+```bash
+# Install Vercel CLI (one-time)
+npm install -g vercel
+
+# Deploy from project root
+vercel
+
+# Production deployment
+vercel --prod
+```
+
+**Configuration**: Uses `vercel.json` in project root
+- **Build Command**: `npm run build:ui:static`
+- **Output Directory**: `dist/apps/ui/browser`
+- **SPA Routing**: Automatic fallback to `/index.html`
+
+**Drag-and-Drop Method:**
+1. Run `npm run build:ui:static`
+2. Navigate to [vercel.com/new](https://vercel.com/new)
+3. Drag the `dist/apps/ui/browser` folder to the deployment area
+4. Vercel automatically detects and deploys the static assets
+
+#### Netlify Deployment
+
+**CLI Method (Recommended):**
+```bash
+# Install Netlify CLI (one-time)
+npm install -g netlify-cli
+
+# Login to Netlify
+netlify login
+
+# Deploy from project root
+netlify deploy
+
+# Production deployment
+netlify deploy --prod
+```
+
+**Configuration**: Uses `netlify.toml` in project root
+- **Build Command**: `npm run build:ui:static`
+- **Publish Directory**: `dist/apps/ui/browser`
+- **SPA Routing**: Redirect rules configured for Angular Router
+
+**Drag-and-Drop Method:**
+1. Run `npm run build:ui:static`
+2. Navigate to [netlify.com/drop](https://netlify.com/drop)
+3. Drag the `dist/apps/ui/browser` folder to the deployment area
+4. Netlify automatically configures SPA routing
+
+#### Environment Variable Configuration
+
+**Production Environment Variables:**
+- `BUILD_HASH`: Automatically generated during build (format: `YYYY-MM-DD-{random}`)
+- `NODE_VERSION`: 18+ (specified in `netlify.toml`)
+- `PNPM_VERSION`: 8+ (specified in `netlify.toml`)
+
+**Custom Build Hash:**
+```bash
+# Set custom build hash before deployment
+BUILD_HASH="v1.3.0-release-001" npm run build:ui:static
+```
+
+#### Deployment Verification Checklist
+
+Before deploying to production, verify:
+
+- [ ] **Local Preview Works**: `npm run preview` serves correctly
+- [ ] **Health Endpoint**: `/health` displays app info and green status
+- [ ] **SPA Routing**: Direct navigation to `/health` works (not 404)
+- [ ] **Build Assets**: `dist/apps/ui/browser/` contains optimized files
+- [ ] **Build Hash**: Unique hash appears in health check page
+- [ ] **Environment**: Shows "Production" in health check
+- [ ] **No Console Errors**: Browser dev tools show clean console
+
+#### Deployment Troubleshooting
+
+**Build Failures:**
+```bash
+# Clear cache and rebuild
+pnpm nx reset
+npm run build:ui:static
+```
+
+**SPA Routing Issues (404 on refresh):**
+- Verify `vercel.json` or `netlify.toml` redirect rules
+- Check hosting platform SPA configuration
+- Ensure `index.html` is in root of publish directory
+
+**Missing Build Hash:**
+- Verify build injection script runs: `npm run build:inject`
+- Check `tools/build-hash.js` exists and is executable
+- Ensure environment restoration: `npm run build:restore`
+
+**Environment Detection Issues:**
+- Health page should show "Production" when deployed
+- Dev environment shows "Development" locally
+- Verify environment files are correctly configured
+
+#### Performance and Monitoring
+
+**Build Optimization:**
+- Bundle size optimized with tree-shaking
+- Asset compression enabled by hosting platforms
+- CDN distribution automatic on Vercel/Netlify
+
+**Health Check Monitoring:**
+- Health endpoint: `https://your-domain.com/health`
+- Monitor build hash to verify deployments
+- Status indicator shows green for healthy application
+
+**Security Headers:**
+- Configured in `netlify.toml` for enhanced security
+- Content Security Policy ready for implementation
+- HTTPS enforced by hosting platforms
+
+#### Custom Domain Configuration
+
+**Vercel:**
+```bash
+# Add custom domain via CLI
+vercel domains add your-domain.com
+
+# Or configure via Vercel dashboard
+```
+
+**Netlify:**
+```bash
+# Add custom domain via CLI
+netlify sites:create --name your-site-name
+netlify domains:create your-domain.com
+```
+
+#### Continuous Deployment
+
+Both platforms support automatic deployment from Git repositories:
+
+1. **Connect Repository**: Link your Git repository to hosting platform
+2. **Build Settings**: 
+   - Build command: `npm run build:ui:prod`
+   - Publish directory: `dist/apps/ui/browser`
+3. **Environment Variables**: Set `NODE_VERSION=18` if needed
+4. **Deploy Branches**: Configure which branches trigger deployments
 
 ## 🔍 Troubleshooting
 

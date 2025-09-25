@@ -24,7 +24,7 @@ export default defineConfig({
   },
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: 'pnpm exec nx run tic-tac-toe-showcase:serve',
+    command: 'pnpm exec nx serve ui',
     url: 'http://localhost:4200',
     reuseExistingServer: true,
     cwd: workspaceRoot,

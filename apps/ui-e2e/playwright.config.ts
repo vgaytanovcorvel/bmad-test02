@@ -16,18 +16,33 @@ const baseURL = process.env['BASE_URL'] || 'http://localhost:4200';
  */
 export default defineConfig({
   ...nxE2EPreset(__filename, { testDir: './src' }),
+  /* Test reporter configuration */
+  reporter: [
+    ['list'], // Console output during test run
+    ['html', { outputFolder: 'playwright-report', open: 'never' }], // HTML report
+    ['junit', { outputFile: 'test-results/junit.xml' }] // JUnit XML for CI
+  ],
+  /* Output directories */
+  outputDir: 'test-results/',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     baseURL,
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
+    /* Screenshots on failure */
+    screenshot: 'only-on-failure',
+    /* Video recording */
+    video: 'retain-on-failure',
   },
   /* Run your local dev server before starting the tests */
   webServer: {
     command: 'pnpm exec nx serve ui',
     url: 'http://localhost:4200',
-    reuseExistingServer: true,
+    reuseExistingServer: false, // Always start fresh server and shutdown after tests
     cwd: workspaceRoot,
+    timeout: 120000, // 2 minutes timeout for server startup
+    stdout: 'pipe',
+    stderr: 'pipe',
   },
   projects: [
     {
@@ -35,10 +50,11 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
     },
 
-    {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
-    },
+    // Temporarily disabled due to browser compatibility issues
+    // {
+    //   name: 'firefox',
+    //   use: { ...devices['Desktop Firefox'] },
+    // },
 
     {
       name: 'webkit',

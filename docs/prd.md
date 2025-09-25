@@ -219,7 +219,7 @@ Story 2.6 (Removed) Undo/Redo History — out of scope in simplified plan.
 Story 2.7 Configuration and Mode Selection
 
 Acceptance Criteria
-1: `GameConfig` supports board size (3x3 or 7x7), k value (3 or 4), and initial player.
+1: `GameConfig` supports board size (3x3 or 4x4), k value (3 for both), and initial player.
 2: Engine exposes a factory to create an `Engine` with a given `GameConfig`; config is surfaced in `GameState` for UI/tests.
 3: Unit tests verify both modes initialize correctly and propagate config through state transitions.
 

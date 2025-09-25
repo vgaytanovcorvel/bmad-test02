@@ -14,9 +14,10 @@ architecture:
   architectureShardedLocation: docs/architecture
 customTechnicalDocuments: null
 devLoadAlwaysFiles:
-  - docs/architecture/coding-standards.md
-  - docs/architecture/tech-stack.md
-  - docs/architecture/source-tree.md
+  - docs/ui-architecture/frontend-tech-stack.md
+  - docs/ui-architecture/project-structure.md
+  - docs/ui-architecture/frontend-developer-standards.md
+  - docs/ui-architecture/component-architecture-standards.md
 devDebugLog: .ai/debug-log.md
 devStoryLocation: docs/stories
 slashPrefix: BMad

@@ -18,6 +18,7 @@ When making architectural decisions that affect the project structure, technolog
 |--------|-------|--------|------|
 | [ADR-001](./ADR-001-tech-stack.md) | Technology Stack Selection | Accepted | 2025-09-25 |
 | [ADR-002](./ADR-002-project-structure.md) | Project Structure and Monorepo Organization | Accepted | 2025-09-25 |
+| [ADR-003](./ADR-003-engine-design.md) | Game Engine Design and Architecture | Accepted | 2024-01-15 |
 
 ## ADR Statuses
 

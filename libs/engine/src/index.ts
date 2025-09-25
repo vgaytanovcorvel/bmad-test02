@@ -19,3 +19,6 @@ export * from './lib/interfaces';
 export * from './lib/engine';
 export * from './lib/computer-player';
 export * from './lib/implementations';
+
+// Export factories
+export * from './lib/factories';

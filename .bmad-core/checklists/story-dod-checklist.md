@@ -131,28 +131,28 @@ After completing the checklist:
 
 Be honest - it's better to flag issues now than have them discovered later.]]
 
-**FINAL DOD SUMMARY FOR STORY 2.5: Terminal-State Detection and Result**
+**FINAL DOD SUMMARY FOR STORY 2.7: Configuration and Mode Selection**
 
 **What was accomplished:**
-- ✅ **STORY ALREADY FULLY IMPLEMENTED** - All terminal state detection functionality exists and is working
-- ✅ Complete `isTerminal()` method with win/draw detection for both 3x3 and 4x4 boards
-- ✅ Complete `winner()` method with proper player identification and null for draws
-- ✅ Full terminal state information in GameState (winningLine, endTime, status)
-- ✅ Cross-board size compatibility (3x3 and 4x4) working correctly
-- ✅ Integration with existing kInRow() method functioning properly  
-- ✅ Comprehensive test suite with 238 passing tests covering all scenarios
-- ✅ All acceptance criteria met by existing implementation
+- ✅ **Complete EngineFactory implementation** with comprehensive configuration validation and factory methods
+- ✅ `EngineFactory.createEngine()` method with full GameConfig validation (board size, k value, players, modes)
+- ✅ Pre-configured factory methods (`create3x3Engine()`, `create4x4Engine()`, `createHumanVsComputerEngine()`)
+- ✅ Configuration propagation verified in existing engine (config stored in initial state, preserved through transitions)
+- ✅ Comprehensive validation for all parameters with clear error messages
+- ✅ 26 new unit tests covering validation, creation, propagation, and integration scenarios
+- ✅ Factory exported through engine public API for easy consumption
+- ✅ All acceptance criteria met with thorough testing and documentation
 
-**Items marked as Not Done:** None - all functionality already implemented and tested
+**Items marked as Not Done:** None - all functionality implemented and tested successfully
 
-**Technical debt identified:** None - existing implementation follows enterprise standards and is thoroughly tested
+**Technical debt identified:** None - implementation follows enterprise standards with comprehensive error handling and type safety
 
 **Challenges and learnings:**
-- Story was already completed by previous development work
-- Existing implementation exceeds requirements with comprehensive error handling
-- Terminal detection integrates seamlessly with existing engine architecture
-- Test coverage is complete with edge cases properly handled
+- TypeScript strict typing required careful handling of test assertions for invalid configurations
+- Existing engine implementation already had excellent configuration propagation
+- Factory pattern provides clean abstraction for engine creation with validation
+- Test suite demonstrates proper usage patterns for future UI integration
 
-**Ready for review:** ✅ YES - Story requirements fully satisfied by existing implementation. No code changes needed.
+**Ready for review:** ✅ YES - All 264 engine tests passing, comprehensive implementation with validation, configuration propagation verified, and thorough documentation.
 
-- [x] I, the Developer Agent, confirm that all applicable items above have been addressed for Story 2.5.
+- [x] I, the Developer Agent, confirm that all applicable items above have been addressed for Story 2.7.

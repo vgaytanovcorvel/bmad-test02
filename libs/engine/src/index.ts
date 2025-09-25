@@ -22,3 +22,6 @@ export * from './lib/implementations';
 
 // Export factories
 export * from './lib/factories';
+
+// Export testing utilities
+export * from './lib/testing/performance-timer';

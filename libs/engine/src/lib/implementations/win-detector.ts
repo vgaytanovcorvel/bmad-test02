@@ -185,6 +185,7 @@ export class WinDetector {
    * Checks both main and anti-diagonals for winning lines in a 4x4 board.
    * Main diagonals: [0,5,10], [1,6,11], [4,9,14], [5,10,15]
    * Anti-diagonals: [2,5,8], [3,6,9], [6,9,12], [7,10,13]
+   * OPTIMIZED: Avoids array spread and forEach for better performance.
    * 
    * @param board - The current board state (16-element array)
    * @returns Array of winning diagonal coordinates, empty if no diagonal wins
@@ -200,6 +201,7 @@ export class WinDetector {
   checkDiagonals4x4(board: readonly Cell[]): number[][] {
     const winningLines: number[][] = [];
     
+    // Performance optimization: Direct array access instead of spread operations
     // Main diagonals (top-left to bottom-right)
     const mainDiagonals = [
       [0, 5, 10], [1, 6, 11], [4, 9, 14], [5, 10, 15]
@@ -210,11 +212,18 @@ export class WinDetector {
       [2, 5, 8], [3, 6, 9], [6, 9, 12], [7, 10, 13]
     ];
     
-    [...mainDiagonals, ...antiDiagonals].forEach(positions => {
-      if (this.isWinningLine(board, positions)) {
-        winningLines.push(positions);
+    // Performance optimization: Manual loops instead of forEach
+    for (let i = 0; i < mainDiagonals.length; i++) {
+      if (this.isWinningLine(board, mainDiagonals[i])) {
+        winningLines.push(mainDiagonals[i]);
       }
-    });
+    }
+    
+    for (let i = 0; i < antiDiagonals.length; i++) {
+      if (this.isWinningLine(board, antiDiagonals[i])) {
+        winningLines.push(antiDiagonals[i]);
+      }
+    }
     
     return winningLines;
   }
@@ -223,6 +232,7 @@ export class WinDetector {
    * Combines all k-in-row detection methods to find all winning lines.
    * Integrates results from row, column, and diagonal detection.
    * Automatically detects board size and routes to appropriate methods.
+   * OPTIMIZED: Avoids spread operator and minimizes array allocations.
    * 
    * @param state - Current game state to analyze
    * @returns Array containing all winning line coordinates
@@ -237,22 +247,21 @@ export class WinDetector {
    */
   kInRow(state: GameState): number[][] {
     const boardSize = state.config.boardSize;
+    const allWinningLines: number[][] = [];
     
     if (boardSize === 3) {
-      const allWinningLines: number[][] = [];
-      allWinningLines.push(...this.checkRows(state.board));
-      allWinningLines.push(...this.checkColumns(state.board));
-      allWinningLines.push(...this.checkDiagonals(state.board));
-      return allWinningLines;
+      // Performance optimization: Direct method calls without intermediate arrays
+      this.collectWinningLines(allWinningLines, this.checkRows(state.board));
+      this.collectWinningLines(allWinningLines, this.checkColumns(state.board));
+      this.collectWinningLines(allWinningLines, this.checkDiagonals(state.board));
     } else if (boardSize === 4) {
-      const allWinningLines: number[][] = [];
-      allWinningLines.push(...this.checkRows4x4(state.board));
-      allWinningLines.push(...this.checkColumns4x4(state.board));
-      allWinningLines.push(...this.checkDiagonals4x4(state.board));
-      return allWinningLines;
+      // Performance optimization: Direct method calls without intermediate arrays
+      this.collectWinningLines(allWinningLines, this.checkRows4x4(state.board));
+      this.collectWinningLines(allWinningLines, this.checkColumns4x4(state.board));
+      this.collectWinningLines(allWinningLines, this.checkDiagonals4x4(state.board));
     }
     
-    return [];
+    return allWinningLines;
   }
   
   /**
@@ -283,6 +292,7 @@ export class WinDetector {
   /**
    * Utility method to check if a specific line of positions forms a win.
    * Validates that all positions contain the same non-null player.
+   * OPTIMIZED: Uses manual loop instead of array.every() for better performance.
    * 
    * @param board - The current board state
    * @param positions - Array of board positions to check
@@ -298,7 +308,28 @@ export class WinDetector {
       return false;
     }
     
-    // Check if all positions have same non-null player
-    return positions.every(pos => board[pos] === firstCell);
+    // Performance optimization: Manual loop avoids function call overhead
+    for (let i = 1; i < positions.length; i++) {
+      if (board[positions[i]] !== firstCell) {
+        return false;
+      }
+    }
+    
+    return true;
+  }
+
+  /**
+   * Utility method to efficiently collect winning lines without spread operations.
+   * OPTIMIZED: Avoids array spread operations that create intermediate arrays.
+   * 
+   * @param target - Target array to collect winning lines into
+   * @param source - Source array containing winning lines to collect
+   * 
+   * @private
+   */
+  private collectWinningLines(target: number[][], source: number[][]): void {
+    for (let i = 0; i < source.length; i++) {
+      target.push(source[i]);
+    }
   }
 }

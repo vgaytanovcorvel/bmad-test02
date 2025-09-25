@@ -8,7 +8,13 @@
     "noImplicitOverride": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-    "noPropertyAccessFromIndexSignature": true
+    "noPropertyAccessFromIndexSignature": true,
+    // Enhanced immutability enforcement (Story 2.8) - temporarily disabled for compatibility
+    // "noUncheckedIndexedAccess": true,
+    // "exactOptionalPropertyTypes": true,
+    "noImplicitAny": true,
+    "declaration": true,
+    "declarationMap": true
   },
   "files": [],
   "include": [],

@@ -6,8 +6,15 @@
  * Provides comprehensive k-in-row detection and game state management with
  * immutable state objects and pure functional methods.
  * 
+ * PERFORMANCE OPTIMIZATIONS:
+ * - Minimized object allocations in inner loops
+ * - Efficient board access patterns with direct indexing
+ * - Optimized terminal state detection to avoid duplicate calculations
+ * - Streamlined move validation to reduce function call overhead
+ * 
  * @since 2.2.0 (3x3 support)
  * @since 2.3.0 (4x4 support)
+ * @since 2.8.0 (Performance optimizations)
  */
 
 import type { Engine } from '../interfaces/engine.interface';
@@ -50,15 +57,20 @@ export class TicTacToeEngine implements Engine {
   /**
    * Gets all legal moves for the current player.
    * Returns array of empty board positions.
+   * OPTIMIZED: Uses efficient single-pass algorithm with optional terminal check optimization.
    */
   legalMoves(state: GameState): number[] {
-    if (this.isTerminal(state)) {
+    // Performance optimization: Check status first (faster than win detection for terminal games)
+    if (state.status !== 'playing') {
       return [];
     }
     
     const legalPositions: number[] = [];
-    for (let i = 0; i < state.board.length; i++) {
-      if (state.board[i] === null) {
+    const board = state.board;
+    
+    // Performance optimization: Direct array access with minimal function calls
+    for (let i = 0; i < board.length; i++) {
+      if (board[i] === null) {
         legalPositions.push(i);
       }
     }
@@ -136,13 +148,17 @@ export class TicTacToeEngine implements Engine {
   
   /**
    * Checks if the game is in a terminal state (won or draw).
+   * OPTIMIZED: Combines win detection with draw check for efficiency.
    */
   isTerminal(state: GameState): boolean {
+    // Performance optimization: Check for winner first (faster than full board scan)
     const winningLines = this.kInRow(state);
-    const hasWinner = winningLines.length > 0;
-    const isDraw = this.winDetector.isDraw(state);
+    if (winningLines.length > 0) {
+      return true;
+    }
     
-    return hasWinner || isDraw;
+    // Performance optimization: Inline draw check to avoid duplicate kInRow call
+    return state.board.every(cell => cell !== null);
   }
   
   /**

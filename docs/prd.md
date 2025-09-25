@@ -22,32 +22,33 @@ The Agentic AI Tic Tac Toe Showcase addresses this critical need by using a fami
 | 2025-09-21 | 1.0     | Initial PRD creation from project brief  | John (PM Agent) |
 | 2025-09-24 | 1.1     | Simplified scope: single perfect computer opponent (exhaustive search), removed difficulty tiers, undo/redo history, AI vs AI mode, multi-layer diagnostics & e2e harness; diagnostics limited to unit tests | John (PM Agent) |
 | 2025-09-24 | 1.2     | Reintroduced integration & e2e test layers (smoke + basic gameplay flows) while keeping simplified architecture | John (PM Agent) |
+| 2025-09-25 | 1.3     | Further scope reduction: board sizes limited to 3x3 & 4x4 (k=3 only); removed 7x7 (k=4); dropped memoization, accessibility (ARIA/reduced-motion) requirements, cross-browser matrix (Chrome & Edge only now), and bundle size budget. Updated tests & epics accordingly; added future extensibility notes. | PO |
 
 ## Requirements
 
-### Functional Requirements (v1.1 Simplified)
+### Functional Requirements (v1.3 Reduced Scope)
  - FR1: Establish project scaffolding and a minimal `/health` route/canary page; deployment is manual (documented) rather than CI/CD-based.
- - FR2: Implement a game engine supporting two board sizes and win rules: 3x3 (k=3) and 7x7 (k=4). Winning lines include any contiguous k-in-a-row across rows, columns, and both diagonals. Include legal move validation, turn alternation, terminal-state detection (win/draw), and reject invalid moves (occupied cell or post-terminal) with a clear error.
+ - FR2: Implement a game engine supporting two board sizes and win rules: 3x3 (k=3) and 4x4 (k=3). Winning lines include any contiguous k-in-a-row across rows, columns, and both diagonals. Include legal move validation, turn alternation, terminal-state detection (win/draw), and reject invalid moves (occupied cell or post-terminal) with a clear error.
  - FR3: Support gameplay modes: Human vs Human and Human vs Computer (single perfect-play computer). (Removed: AI vs AI, difficulty tiers.)
- - FR4: Computer opponent selects a best move via exhaustive search of possible continuations (memoization allowed); no randomness, seeding, or tie-breaker hierarchy beyond picking an optimal result (prefer earliest winning path if multiple).
+ - FR4: Computer opponent selects a best move via exhaustive search of possible continuations. No memoization or pruning in v1.3 (future enhancement). Deterministic choice; if multiple optimal outcomes exist, any optimal move is acceptable.
  - FR5: Provide a responsive web UI that renders the board, indicates current player, allows move input, shows outcomes (win/draw), and supports starting a new game. Undo/redo and per-move history are out of scope.
- - FR6: Optional subtle 3D or visual enhancement; simple terminal-state lock that disables further input (animated lock optional, may be omitted).
- - FR7: Expose a minimal public API from the engine consumed directly by the UI (no separate AI module / worker layer).
- - FR8: Provide a unit test suite (single layer) covering engine rules (k-in-row, terminal detection, correct optimal move in selected scenarios) and minimal UI smoke tests. No integration, e2e, or performance benchmark suites.
+ - FR6: Optional subtle visual enhancement; simple terminal-state lock disabling further input. (3D / Babylon.js removed for now.)
+ - FR7: Expose a minimal public API from the engine consumed directly by the UI (no worker layer).
+ - FR8: Provide a unit test suite covering engine rules (k-in-row, terminal detection, correct optimal move in selected scenarios) and minimal UI smoke tests.
  - FR9: Provide a Credits/About page accessible from the main UI listing contributors and third-party libraries (versions/licenses) and linking to LICENSE/NOTICE files.
- - FR10: Provide integration tests (component/service wiring) and e2e Playwright tests covering health route, basic Human vs Computer game flow (3x3 & 7x7), win/draw detection, and accessibility (ARIA announcements, reduced-motion) smoke scenarios.
+ - FR10: Provide integration tests and e2e Playwright tests covering health route and basic Human vs Computer game flow (3x3 & 4x4), win/draw detection. Accessibility tests removed (out of scope v1.3).
 
-### Non-Functional Requirements (v1.2 Updated)
+### Non-Functional Requirements (v1.3 Updated)
  - NFR1: Target ≥85% combined unit + integration coverage for engine & UI logic (e2e excluded from coverage metrics but required to pass).
- - NFR2: Keep architecture minimal: only separate engine from UI; omit undo/redo, statistics, complex AI abstraction layers.
- - NFR3: Performance: computer move calculation should generally complete perceptibly instantly (<50ms typical). If certain 7x7 positions exceed ~100ms, introduce memoization or shallow pruning pragmatically.
- - NFR4: Documentation: concise README (setup, run, test, build) plus a short architecture note describing engine design and exhaustive search approach. Extended ADR set optional.
+ - NFR2: Minimal architecture: engine + UI only; no undo/redo, statistics, AI abstraction layers.
+ - NFR3: Performance: for 3x3 & 4x4 exhaustive search must complete perceptibly instantly (<10ms typical on modern hardware). Future larger boards will require design of pruning/memoization (deferred).
+ - NFR4: Documentation: concise README (setup, run, test, build) plus short architecture note (exhaustive search rationale & extension path for more board sizes/k values).
  - NFR5: Basic security hygiene (no unsafe HTML injection; sanitize any future user-entered strings if added).
- - NFR6: Support modern evergreen browsers (Chrome, Firefox, Edge, Safari) with responsive layout and touch support.
+ - NFR6: Supported browsers limited to current Chrome & Edge (latest stable). Firefox/Safari/mobile optimization deferred.
  - NFR7: Maintain code quality via linting & formatting; all commits pass tests before merge.
- - NFR8: Accessibility: semantic HTML, sufficient contrast, ARIA live announcement for result, respect `prefers-reduced-motion`.
- - NFR9: Bundle size expected to remain naturally small (<500KB gzip). If optional Babylon.js is included, lazy-load it and keep initial bundle <1MB.
- - NFR10: Licensing & attribution compliance via a Credits page and LICENSE/NOTICE files; automated generation of dependency metadata is optional and may be deferred.
+ - NFR8: Licensing & attribution compliance via a Credits page and LICENSE/NOTICE files; automated generation of dependency metadata is optional and may be deferred.
+
+Removed (v1.2 -> v1.3): Accessibility (ARIA / reduced-motion) requirements, bundle size target, multi-browser matrix. Rationale: focus on core AI + engineering methodology demonstration; can be reinstated in later iteration.
 
 ## User Interface Design Goals (Simplified)
 
@@ -68,59 +69,57 @@ The Agentic AI Tic Tac Toe Showcase addresses this critical need by using a fami
 - Game Board View (primary)
 - Credits/About Page
 
-### Accessibility
-- Contrast meets WCAG AA for essential UI.
-- Live announcements: game start, each turn, result (win/draw), invalid move (optional, minimalistic).
-- Reduced-motion: animations skipped or instantly applied.
+### (Removed) Accessibility
+Removed from v1.3 scope. Minimal semantic HTML will be used but no formal ARIA live region, reduced-motion handling, or WCAG conformance testing. A future story will reintroduce accessibility for broader adoption.
 
 ### Branding & Visuals
 - Neutral, modern, lightweight styling; technical audience.
 - 3D / Babylon.js entirely optional; CSS-only fallback default.
 
 ### Target Platforms
-- Modern evergreen browsers (Chrome, Firefox, Safari, Edge) on desktop & mobile.
+- Desktop Chrome & Edge (latest) primary. Others deferred.
 
-## Technical Assumptions
+### Technical Assumptions (v1.3)
 
-### Repository Structure: Monorepo (Nx, Simplified)
+### Repository Structure: Monorepo (Nx)
 - `apps/ui` (Angular UI)
 - `libs/engine` (rules + exhaustive perfect-move search)
 - `libs/shared` (types/utilities)
 
-Removed: separate AI library, e2e test app, undo/redo history service.
+Removed: separate AI library, undo/redo history service.
 
-### Service Architecture (Simplified)
+### Service Architecture
 - Pure client-side Angular SPA.
-- No Web Workers (exhaustive search performance acceptable with memoization).
+- No Web Workers (not needed for 3x3 / 4x4 complexity).
 - No backend/services.
 
-### Testing Requirements (v1.2)
-- Unit Tests (Jest): engine logic (k-in-row, terminal detection, exhaustive optimal move scenarios), utility functions, simple UI component logic.
-- Integration Tests (Jest + @testing-library/angular): board/component ↔ engine interaction (placing moves, terminal detection, computer move application), accessibility announcements (mocked live region), reduced-motion preference handling.
+### Testing Requirements (v1.3)
+- Unit Tests (Jest): engine logic (k-in-row for 3x3 & 4x4, terminal detection, exhaustive optimal move scenarios), utility functions, simple UI component logic.
+- Integration Tests (Jest + @testing-library/angular): board/component ↔ engine interaction (placing moves, terminal detection, computer move application).
 - End-to-End Tests (Playwright):
-	- Smoke: `/health` route renders status.
-	- Gameplay: Human vs Computer 3x3 quick win scenario; Human vs Computer 7x7 mid-game leading to draw (scripted moves); verification of winning line highlight & disabled input post terminal.
-	- Accessibility: reduced-motion forced; ARIA announcements presence.
-- Determinism: Computer opponent is deterministic (exhaustive search) so e2e assertions rely on fixed expected moves after given sequence.
-- Scripts: `test` (unit+integration), `test:unit`, `test:integration`, `e2e` (Playwright), `coverage`.
-- CI/Local Gate (manual for now): must pass unit, integration, e2e before release; coverage threshold enforced on unit+integration only.
+    - Smoke: `/health` route renders status.
+    - Gameplay: Human vs Computer 3x3 quick win scenario; Human vs Computer 4x4 mid/late-game draw scenario (scripted moves); verify winning line highlight & disabled input post terminal.
+- Determinism: Computer opponent deterministic via exhaustive search.
+- Scripts: `test` (unit+integration), `test:unit`, `test:integration`, `e2e`, `coverage`.
+- Local gate: pass unit + integration + e2e before release; coverage threshold enforced on unit+integration only.
 
-### Additional Technical Assumptions (Simplified)
-- Angular (Nx + Vite) + Tailwind (minimal config) + strict TypeScript.
-- State via lightweight services or component state (NgRx only if future complexity grows).
-- Perfect move: recursive exhaustive search with memoization (board string + player).
-- No seeded randomness, no difficulty tiers, no workers.
-- Optional Babylon.js (lazy) OR omit entirely (CSS-only visuals).
-- Tooling: ESLint, Prettier; one short architecture note (ADR optional).
+### Additional Technical Assumptions
+- Angular (Nx + Vite) + Tailwind + strict TypeScript.
+- State via lightweight component/service state.
+- Perfect move: recursive exhaustive search WITHOUT memoization (boards small enough). Future extension may reintroduce cache with eviction strategy.
+- No randomness, no difficulty tiers, no workers.
+- 3D / Babylon.js omitted in v1.3 (can be added later with lazy-load ADR).
+- Tooling: ESLint, Prettier; short architecture note (ADR optional).
 - Static hosting (Vercel/Netlify) manual deploy.
 - Basic security hygiene (no dynamic HTML injection).
 
-## Epic List (Simplified)
+## Epic List (v1.3)
 
 - Epic 1: Foundation & Core Infrastructure — Scaffold Nx Angular workspace, Tailwind, lint/test scripts, health-check.
-- Epic 2: Core Engine & Perfect Computer Opponent — Board logic, k-in-row detection, exhaustive optimal move.
-- Epic 3: UI Integration — Responsive UI, minimal controls, accessibility, optional light animation/3D.
+- Epic 2: Core Engine & Perfect Computer Opponent — Board logic, k-in-row detection (3x3 & 4x4), exhaustive optimal move (no memoization).
+- Epic 3: UI Integration — Responsive UI, minimal controls, optional light visual enhancement.
 - Epic 4: Credits & Release — Credits page, minimal docs, build & manual deploy.
+- Epic 5: Integration & E2E Testing — Confidence across core scenarios (health, gameplay) after scope reduction.
 
 ## Epic 1: Foundation & Core Infrastructure
 
@@ -192,11 +191,11 @@ Acceptance Criteria
 3: Include tie/draw detection when no legal moves remain and no winner.
 4: Unit tests cover all single and multiple winning scenarios, edges, and no-win cases.
 
-Story 2.3 K-in-Row Logic for 7x7 (k=4)
+Story 2.3 K-in-Row Logic for 4x4 (k=3)
 
 Acceptance Criteria
-1: Implement detection for contiguous 4-in-a-row across rows, columns, and both diagonals on 7x7.
-2: Ensure algorithm scales without degrading performance unnecessarily; avoid unnecessary allocations.
+1: Implement detection for contiguous 3-in-a-row across rows, columns, and both diagonals on 4x4.
+2: Avoid unnecessary allocations; simple loops acceptable.
 3: Return all winning line coordinates similar to 3x3.
 4: Unit tests include overlapping threats, multiple win-line scenarios, edges, and near-miss cases.
 
@@ -224,12 +223,12 @@ Acceptance Criteria
 2: Engine exposes a factory to create an `Engine` with a given `GameConfig`; config is surfaced in `GameState` for UI/tests.
 3: Unit tests verify both modes initialize correctly and propagate config through state transitions.
 
-Story 2.8 Performance and Allocation Hygiene
+Story 2.8 Performance (Simplified)
 
 Acceptance Criteria
-1: Critical inner loops avoid per-iteration allocations; use typed arrays or flat arrays where beneficial.
-2: Add micro-bench tests (or timing assertions) guarding regressions for win detection on 7x7.
-3: Lint rules enforce immutability patterns and small function sizes in engine code.
+1: Inner loops avoid unnecessary allocations.
+2: Simple timing assertion (optional) demonstrates typical move calculation <10ms.
+3: Lint rules enforce immutability patterns.
 
 Story 2.9 Documentation and Examples
 
@@ -262,16 +261,13 @@ Acceptance Criteria
 2: Change board size triggers new game.
 3: New Game resets state.
 
-Story 3.4 Accessibility
-Acceptance Criteria
-1: ARIA live region for turn & result announcements.
-2: Reduced motion disables animations.
-3: Focus order logical; controls keyboard accessible.
+Story 3.4 (Removed) Accessibility
+Out of scope in v1.3. Minimal semantic markup only.
 
 Story 3.5 Optional Visual Enhancements
 Acceptance Criteria
-1: (Optional) Lazy-load Babylon.js OR pure CSS fallback only.
-2: Animations ≤300ms and skipped when reduced motion.
+1: (Optional) Subtle CSS-only transition ≤200ms; can be disabled by removing class (no reduced-motion logic required).
+2: No external 3D library in v1.3.
 
 Story 3.6 Minimal Tests
 Acceptance Criteria
@@ -328,27 +324,31 @@ Provide confidence that UI, engine, and computer opponent work together across c
 
 Story 5.1 Integration Test Suite
 Acceptance Criteria
-1: Integration tests cover: move application sequence (X human then computer optimal reply), win detection highlight, draw scenario creation.
-2: Live region announcements asserted via DOM queries/mocks.
-3: Reduced-motion flag test ensures animations disabled path still functional.
+1: Integration tests cover: move application sequence (X human then computer optimal reply), win detection highlight, draw scenario creation (3x3 & 4x4).
+2: No accessibility assertions required.
 
 Story 5.2 Playwright Smoke & Gameplay
 Acceptance Criteria
 1: `/health` smoke test passes.
 2: 3x3 Human vs Computer scenario producing a forced win for X validated (final board & result text).
-3: 7x7 scenario reaching draw validated (board full, draw message, no active cells).
+3: 4x4 scenario reaching draw validated (board full or scripted near-full draw path) with draw message & no active cells.
 
-Story 5.3 Accessibility & Reduced Motion E2E
-Acceptance Criteria
-1: Run with emulated reduced-motion; ensure no animation-related timeouts.
-2: ARIA live region contains at least turn change and final result messages.
+Story 5.3 (Removed) Accessibility & Reduced Motion E2E
+Out of scope v1.3.
 
 Story 5.4 Deterministic Computer Move Assertions
 Acceptance Criteria
-1: Predefined partial board states loaded (via helper) produce expected computed move (cell index) in both board sizes.
+1: Predefined partial board states produce expected computed move (cell index) for 3x3 & 4x4.
 2: Failures output diff of expected vs actual move for debugging.
 
 Story 5.5 Documentation & Scripts
 Acceptance Criteria
 1: README updated with how to run integration vs e2e tests separately.
 2: CONTRIBUTING clarifies when e2e suite must be executed (pre-release / pre-merge for gameplay changes).
+
+## Future Extensibility Notes (Informational)
+- Board Sizes: Architecture will allow injecting supported board configurations via a constant `SUPPORTED_CONFIGS` (e.g., later adding 5x5 k=4, 7x7 k=4) without refactoring core engine interfaces.
+- Performance Path: If larger boards added, introduce optional memoized minimax with transposition table & depth-limited iterative deepening; add eviction (LRU) or size cap.
+- Accessibility: Reintroduce ARIA live region, focus management, and reduced-motion compliance as a dedicated Epic once core demo validated.
+- Browser Support: Expand automated test matrix (Playwright projects per browser) before public/enterprise showcase.
+- Bundle Size: Track with a simple build-time report when/if richer visuals or external libraries are introduced.

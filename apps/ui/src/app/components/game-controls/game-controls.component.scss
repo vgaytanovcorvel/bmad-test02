@@ -1,0 +1,55 @@
+.game-controls {
+  @apply flex flex-wrap items-center gap-4 p-4 bg-white rounded-lg shadow-md border border-gray-200;
+  
+  .control-group {
+    @apply flex flex-col gap-1;
+    
+    .control-label {
+      @apply text-sm font-medium text-gray-700;
+    }
+    
+    .control-select {
+      @apply px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm;
+      @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500;
+      @apply hover:border-gray-400 transition-colors;
+      background-color: white;
+      cursor: pointer;
+      
+      &:disabled {
+        @apply bg-gray-100 text-gray-500 cursor-not-allowed;
+      }
+    }
+  }
+  
+  .new-game-btn {
+    @apply px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium;
+    @apply rounded-md shadow-sm transition-colors duration-200;
+    @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
+    @apply disabled:bg-gray-400 disabled:cursor-not-allowed;
+    border: none;
+    cursor: pointer;
+  }
+}
+
+// Responsive design
+@media (max-width: 640px) {
+  .game-controls {
+    @apply flex-col items-stretch;
+    
+    .control-group {
+      @apply flex-row items-center justify-between;
+      
+      .control-label {
+        @apply flex-shrink-0 w-24;
+      }
+      
+      .control-select {
+        @apply flex-1 min-w-0;
+      }
+    }
+    
+    .new-game-btn {
+      @apply w-full;
+    }
+  }
+}

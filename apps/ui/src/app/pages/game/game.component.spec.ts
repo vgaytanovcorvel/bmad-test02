@@ -31,26 +31,16 @@ describe('GameComponent', () => {
     expect(boardContainer).toBeTruthy();
   });
 
-  it('should render inline controls', () => {
-    const compiled = fixture.nativeElement as HTMLElement;
-    const controls = compiled.querySelector('[data-testid="game-controls"]');
-    expect(controls).toBeTruthy();
-  });
-
   it('should render game title', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     const title = compiled.querySelector('h1');
     expect(title?.textContent?.trim()).toBe('Tic Tac Toe');
   });
 
-  it('should render control buttons', () => {
+  it('should render game controls component', () => {
     const compiled = fixture.nativeElement as HTMLElement;
-    const buttons = compiled.querySelectorAll('.control-button');
-    expect(buttons.length).toBe(3);
-    
-    expect(buttons[0].textContent?.trim()).toBe('3x3 / 4x4');
-    expect(buttons[1].textContent?.trim()).toBe('Human vs Human / Human vs Computer');
-    expect(buttons[2].textContent?.trim()).toBe('New Game');
+    const gameControls = compiled.querySelector('app-game-controls');
+    expect(gameControls).toBeTruthy();
   });
 
   it('should render game board and status components', () => {

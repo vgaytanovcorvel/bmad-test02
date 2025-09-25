@@ -84,19 +84,18 @@ test.describe('Page Navigation', () => {
     await expect(page.locator('[data-testid="nav-game"]')).toHaveClass(/active/);
   });
 
-  test('should render game controls and board placeholder', async ({ page }) => {
+  test('should render game controls and board', async ({ page }) => {
     await page.goto('/');
     
     // Check game controls are present
     await expect(page.locator('[data-testid="game-controls"]')).toBeVisible();
     
-    // Check all control buttons are present
-    const controlButtons = page.locator('.control-button');
-    await expect(controlButtons).toHaveCount(3);
+    // Check control elements are present (mode selector, size selector, new game button)
+    await expect(page.getByTestId('mode-selector')).toBeVisible();
+    await expect(page.getByTestId('size-selector')).toBeVisible();
+    await expect(page.getByTestId('new-game-button')).toBeVisible();
     
-    // Check board placeholder is visible
-    const boardPlaceholder = page.locator('.board-placeholder');
-    await expect(boardPlaceholder).toBeVisible();
-    await expect(boardPlaceholder).toContainText('Game Board Component');
+    // Check game board is visible
+    await expect(page.locator('[data-testid="game-board"]')).toBeVisible();
   });
 });

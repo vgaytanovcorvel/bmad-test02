@@ -1,6 +1,6 @@
 import { Injectable, signal, computed } from '@angular/core';
 import { EngineFactory, Engine } from '@libs/engine';
-import { GameState, GameConfig, Move } from '@libs/shared';
+import { GameState, GameConfig, Move, GameMode, BoardSize } from '@libs/shared';
 
 @Injectable({
   providedIn: 'root'
@@ -27,6 +27,11 @@ export class GameService {
     return state ? this.engine.legalMoves(state) : [];
   });
   status = computed(() => this.gameState().status);
+  
+  // New configuration signals for Story 3.3
+  currentConfig = computed(() => this.gameState().config);
+  currentMode = computed(() => this.currentConfig().mode);
+  currentBoardSize = computed(() => this.currentConfig().boardSize);
 
   constructor() {
     this.startNewGame();
@@ -56,9 +61,15 @@ export class GameService {
       };
       const newState = this.engine.applyMove(currentState, move);
       this._gameState.set(newState);
+      
+      // After human move, check if computer should move next
+      if (this.isHumanVsComputerMode() && !this.isTerminal()) {
+        setTimeout(() => this.executeComputerMove(), 500); // Small delay for UX
+      }
+      
       return true;
-    } catch (error) {
-      console.error('Invalid move:', error);
+    } catch {
+      // Invalid move - error is handled by returning false
       return false;
     }
   }
@@ -81,6 +92,82 @@ export class GameService {
   // Legacy method compatibility
   isValidMove(state: GameState, position: number): boolean {
     return this.engine.legalMoves(state).includes(position);
+  }
+
+  // Computer player integration methods for Story 3.3
+  private isHumanVsComputerMode(): boolean {
+    return this.currentMode() === 'human-vs-computer';
+  }
+  
+  private isComputerTurn(): boolean {
+    return this.isHumanVsComputerMode() && 
+           this.gameState().currentPlayer === 'O' && 
+           !this.isTerminal();
+  }
+  
+  private executeComputerMove(): void {
+    if (!this.isComputerTurn()) return;
+    
+    const legalMoves = this.legalMoves();
+    
+    if (legalMoves.length > 0) {
+      // For now, use a simple strategy (first legal move)
+      // The engine will handle optimal play logic
+      const computerPosition = legalMoves[0];
+      this.makeComputerMove(computerPosition);
+    }
+  }
+  
+  private makeComputerMove(position: number): void {
+    const currentState = this.gameState();
+    if (!currentState || this.isTerminal()) return;
+    
+    try {
+      const move: Move = {
+        player: currentState.currentPlayer,
+        position,
+        timestamp: Date.now()
+      };
+      const newState = this.engine.applyMove(currentState, move);
+      this._gameState.set(newState);
+    } catch {
+      // Invalid computer move - silently ignore as computer logic should prevent this
+    }
+  }
+
+  // New configuration methods for Story 3.3
+  changeGameMode(mode: GameMode): void {
+    const currentConfig = this.currentConfig();
+    if (currentConfig && this.canChangeConfiguration()) {
+      const newConfig: GameConfig = { ...currentConfig, mode };
+      this.startNewGame(newConfig);
+    }
+  }
+  
+  changeBoardSize(boardSize: BoardSize): void {
+    const currentConfig = this.currentConfig();
+    if (currentConfig && this.canChangeConfiguration()) {
+      const newConfig: GameConfig = { ...currentConfig, boardSize };
+      this.startNewGame(newConfig);
+    }
+  }
+  
+  // Configuration state validation
+  private canChangeConfiguration(): boolean {
+    // For now, allow changes at any time (starts new game)
+    // Future enhancement could add confirmation dialog for active games
+    return true;
+  }
+  
+  // Utility method to check if game has started
+  hasGameStarted(): boolean {
+    const moveHistory = this.gameState().moveHistory;
+    return moveHistory && moveHistory.length > 0;
+  }
+  
+  // Utility method to check if game is in progress
+  isGameInProgress(): boolean {
+    return this.hasGameStarted() && !this.isTerminal();
   }
 
   private createInitialState(): GameState {

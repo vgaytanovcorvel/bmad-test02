@@ -1,0 +1,62 @@
+Tic-Tac-Toe Showcase Project
+Copyright (c) 2025 Tic-Tac-Toe Showcase Project
+
+This project includes software developed by third parties:
+
+================================================================================
+Angular
+Copyright (c) 2010-2025 Google LLC. https://angular.io/
+Licensed under the MIT License
+
+================================================================================
+Nx
+Copyright (c) 2017-2025 Nrwl, LLC. https://nx.dev/
+Licensed under the MIT License
+
+================================================================================
+Vite
+Copyright (c) 2019-present, Yuxi (Evan) You and Vite contributors
+Licensed under the MIT License
+
+================================================================================
+Tailwind CSS
+Copyright (c) Tailwind Labs, Inc. https://tailwindcss.com/
+Licensed under the MIT License
+
+================================================================================
+Jest
+Copyright (c) Facebook, Inc. and its affiliates. https://jestjs.io/
+Licensed under the MIT License
+
+================================================================================
+Playwright
+Copyright (c) Microsoft Corporation. https://playwright.dev/
+Licensed under the Apache License 2.0
+
+================================================================================
+TypeScript
+Copyright (c) Microsoft Corporation. https://www.typescriptlang.org/
+Licensed under the Apache License 2.0
+
+================================================================================
+PNPM
+Copyright (c) Zoltan Kochan. https://pnpm.io/
+Licensed under the MIT License
+
+================================================================================
+ESLint
+Copyright JS Foundation and other contributors, https://js.foundation/
+Licensed under the MIT License
+
+================================================================================
+Prettier
+Copyright James Long and contributors. https://prettier.io/
+Licensed under the MIT License
+
+================================================================================
+
+For complete license information for each dependency, please refer to the 
+package.json files and node_modules directory in this project.
+
+Third-party software licenses can be found in their respective directories 
+within node_modules/ or by visiting the project URLs listed above.

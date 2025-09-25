@@ -531,9 +531,37 @@ pnpm validate          # lint → test → build sequence
 4. Use conventional commit messages
 5. **Ensure all quality gates pass before merging** (see Quality Assurance section above)
 
-## 📄 License
+## 📄 Legal and License Information
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+### License
+
+This project is licensed under the **MIT License** - see the [LICENSE](./LICENSE) file for complete details.
+
+### Third-Party Attributions
+
+This project uses several open-source libraries and tools. Complete attribution information can be found in the [NOTICE](./NOTICE) file, including:
+
+- **Angular** (MIT License) - Web application framework
+- **Nx** (MIT License) - Monorepo development tools
+- **Vite** (MIT License) - Build tool and development server
+- **Tailwind CSS** (MIT License) - Utility-first CSS framework
+- **TypeScript** (Apache 2.0) - Typed JavaScript language
+- **Playwright** (Apache 2.0) - End-to-end testing framework
+
+### Compliance
+
+This project complies with all applicable open source licenses. The MIT License allows for:
+- ✅ Commercial use
+- ✅ Private use
+- ✅ Modification
+- ✅ Distribution
+- ✅ Patent use (within license scope)
+
+**Requirements**: Include copyright notice and license text when distributing the software.
+
+### Contributing License Agreement
+
+By contributing to this project, you agree that your contributions will be licensed under the same MIT License that covers the project.
 
 ---
 

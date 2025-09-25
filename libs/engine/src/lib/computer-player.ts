@@ -1,4 +1,4 @@
-import { GameState, Player, Board } from '@libs/shared';
+import { GameState, Player, Cell } from '@libs/shared';
 import { isCellEmpty } from '@libs/shared';
 
 export class ComputerPlayer {
@@ -33,7 +33,7 @@ export class ComputerPlayer {
     return this.getFirstAvailableMove(state.board);
   }
 
-  private findWinningMove(board: Board, player: Player): number {
+  private findWinningMove(board: readonly Cell[], player: Player): number {
     for (const combination of this.WINNING_COMBINATIONS) {
       const [a, b, c] = combination;
       const values = [board[a], board[b], board[c]];
@@ -49,7 +49,7 @@ export class ComputerPlayer {
     return -1;
   }
 
-  private getFirstAvailableMove(board: Board): number {
+  private getFirstAvailableMove(board: readonly Cell[]): number {
     for (let i = 0; i < board.length; i++) {
       if (isCellEmpty(board, i)) return i;
     }

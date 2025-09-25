@@ -1,4 +1,4 @@
-import { GameState, Move, Player, Board } from '@libs/shared';
+import { GameState, Move, Player, Cell, GameConfig } from '@libs/shared';
 import { createEmptyBoard, getOpponent, isCellEmpty } from '@libs/shared';
 
 export class GameEngine {
@@ -9,13 +9,22 @@ export class GameEngine {
   ];
 
   createInitialState(firstPlayer: Player = 'X'): GameState {
+    const config: GameConfig = {
+      boardSize: 3,
+      kInRow: 3,
+      firstPlayer,
+      mode: 'human-vs-human'
+    };
+
     return {
       board: createEmptyBoard(),
       currentPlayer: firstPlayer,
       winner: null,
       status: 'playing',
       moveHistory: [],
-      winningLine: undefined
+      winningLine: null,
+      config,
+      startTime: Date.now()
     };
   }
 
@@ -28,7 +37,7 @@ export class GameEngine {
     newBoard[move.position] = move.player;
 
     const winner = this.checkWinner(newBoard);
-    const winningLine = winner ? this.getWinningLine(newBoard) : undefined;
+    const winningLine = winner ? this.getWinningLine(newBoard) : null;
     const isBoardFull = newBoard.every(cell => cell !== null);
 
     let status: GameState['status'];
@@ -47,7 +56,8 @@ export class GameEngine {
       winner,
       status,
       moveHistory: [...state.moveHistory, move],
-      winningLine
+      winningLine,
+      endTime: (status === 'won' || status === 'draw') ? Date.now() : undefined
     };
   }
 
@@ -55,7 +65,7 @@ export class GameEngine {
     return state.status === 'playing' && isCellEmpty(state.board, position);
   }
 
-  checkWinner(board: Board): Player | null {
+  checkWinner(board: readonly Cell[]): Player | null {
     for (const combination of this.WINNING_COMBINATIONS) {
       const [a, b, c] = combination;
       if (board[a] && board[a] === board[b] && board[a] === board[c]) {
@@ -65,13 +75,13 @@ export class GameEngine {
     return null;
   }
 
-  private getWinningLine(board: Board): number[] | undefined {
+  private getWinningLine(board: readonly Cell[]): number[] | null {
     for (const combination of this.WINNING_COMBINATIONS) {
       const [a, b, c] = combination;
       if (board[a] && board[a] === board[b] && board[a] === board[c]) {
         return combination;
       }
     }
-    return undefined;
+    return null;
   }
 }

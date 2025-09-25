@@ -1,5 +1,5 @@
 import { createEmptyBoard, isValidPosition, formatPlayerSymbol, isCellEmpty, getOpponent } from './utils';
-import { Board } from './types';
+import { Cell } from './types';
 
 describe('Utils', () => {
   describe('createEmptyBoard', () => {
@@ -42,27 +42,28 @@ describe('Utils', () => {
   });
 
   describe('isCellEmpty', () => {
-    let board: Board;
-
-    beforeEach(() => {
-      board = createEmptyBoard();
-    });
-
     it('should return true for empty cells', () => {
+      const board = createEmptyBoard();
       expect(isCellEmpty(board, 0)).toBe(true);
       expect(isCellEmpty(board, 4)).toBe(true);
       expect(isCellEmpty(board, 8)).toBe(true);
     });
 
     it('should return false for occupied cells', () => {
-      board[0] = 'X';
-      board[4] = 'O';
+      // Create a mutable board for testing
+      const mutableBoard: Cell[] = Array(9).fill(null);
+      mutableBoard[0] = 'X';
+      mutableBoard[4] = 'O';
+      
+      // Convert to readonly for function call
+      const board = mutableBoard as readonly Cell[];
       
       expect(isCellEmpty(board, 0)).toBe(false);
       expect(isCellEmpty(board, 4)).toBe(false);
     });
 
     it('should return false for invalid positions', () => {
+      const board = createEmptyBoard();
       expect(isCellEmpty(board, -1)).toBe(false);
       expect(isCellEmpty(board, 9)).toBe(false);
     });

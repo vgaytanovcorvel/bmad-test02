@@ -1,8 +1,34 @@
 import { GameEngine } from './engine';
-import { GameState, Move, Board } from '@libs/shared';
+import { GameState, Move, GameConfig, Cell } from '@libs/shared';
 
 describe('GameEngine', () => {
   let engine: GameEngine;
+
+  // Helper function to create test configuration
+  function createTestConfig(overrides: Partial<GameConfig> = {}): GameConfig {
+    return {
+      boardSize: 3,
+      kInRow: 3,
+      firstPlayer: 'X',
+      mode: 'human-vs-human',
+      ...overrides
+    };
+  }
+
+  // Helper function to create test GameState
+  function createTestGameState(board: readonly Cell[], overrides: Partial<GameState> = {}): GameState {
+    return {
+      board,
+      currentPlayer: 'X',
+      moveHistory: [],
+      status: 'playing',
+      winner: null,
+      winningLine: null,
+      config: createTestConfig(),
+      startTime: Date.now(),
+      ...overrides
+    };
+  }
 
   beforeEach(() => {
     engine = new GameEngine();
@@ -18,7 +44,7 @@ describe('GameEngine', () => {
       expect(state.winner).toBeNull();
       expect(state.status).toBe('playing');
       expect(state.moveHistory).toHaveLength(0);
-      expect(state.winningLine).toBeUndefined();
+      expect(state.winningLine).toBeNull();
     });
 
     it('should create initial game state with specified first player', () => {
@@ -29,39 +55,42 @@ describe('GameEngine', () => {
   });
 
   describe('isValidMove', () => {
-    let state: GameState;
+    it('should return true for empty positions in playing game', () => {
+      const state = engine.createInitialState();
 
-    beforeEach(() => {
-      state = engine.createInitialState();
-    });
-
-    it('should return true for empty cell in playing game', () => {
       expect(engine.isValidMove(state, 0)).toBe(true);
       expect(engine.isValidMove(state, 4)).toBe(true);
       expect(engine.isValidMove(state, 8)).toBe(true);
     });
 
-    it('should return false for occupied cell', () => {
-      state.board[0] = 'X';
-      
+    it('should return false for occupied positions', () => {
+      const board: readonly Cell[] = [
+        'X', null, null,
+        null, 'O', null,
+        null, null, null
+      ];
+      const state = createTestGameState(board);
+
       expect(engine.isValidMove(state, 0)).toBe(false);
+      expect(engine.isValidMove(state, 4)).toBe(false);
+      expect(engine.isValidMove(state, 1)).toBe(true);
     });
 
-    it('should return false for invalid position', () => {
-      expect(engine.isValidMove(state, -1)).toBe(false);
-      expect(engine.isValidMove(state, 9)).toBe(false);
-    });
+    it('should return false for terminal state', () => {
+      const board: readonly Cell[] = [
+        'X', 'X', 'X',
+        null, 'O', null,
+        null, null, null
+      ];
+      const state = createTestGameState(board, { status: 'won', winner: 'X' });
 
-    it('should return false when game is not playing', () => {
-      state.status = 'won';
-      
-      expect(engine.isValidMove(state, 0)).toBe(false);
+      expect(engine.isValidMove(state, 3)).toBe(false);
     });
   });
 
   describe('checkWinner', () => {
     it('should detect row wins', () => {
-      const board: Board = [
+      const board: readonly Cell[] = [
         'X', 'X', 'X',
         null, 'O', null,
         'O', null, null
@@ -71,7 +100,7 @@ describe('GameEngine', () => {
     });
 
     it('should detect column wins', () => {
-      const board: Board = [
+      const board: readonly Cell[] = [
         'O', 'X', null,
         'O', 'X', null,
         'O', null, 'X'
@@ -81,7 +110,7 @@ describe('GameEngine', () => {
     });
 
     it('should detect diagonal wins', () => {
-      const board: Board = [
+      const board: readonly Cell[] = [
         'X', 'O', 'O',
         'O', 'X', null,
         null, null, 'X'
@@ -91,7 +120,7 @@ describe('GameEngine', () => {
     });
 
     it('should return null when no winner', () => {
-      const board: Board = [
+      const board: readonly Cell[] = [
         'X', 'O', 'X',
         'O', 'O', 'X',
         'O', 'X', null
@@ -102,19 +131,14 @@ describe('GameEngine', () => {
   });
 
   describe('processMove', () => {
-    let state: GameState;
-    let move: Move;
-
-    beforeEach(() => {
-      state = engine.createInitialState();
-      move = {
+    it('should process valid move and update state', () => {
+      const state = engine.createInitialState();
+      const move: Move = {
         player: 'X',
         position: 0,
         timestamp: Date.now()
       };
-    });
 
-    it('should process valid move and update state', () => {
       const newState = engine.processMove(state, move);
 
       expect(newState.board[0]).toBe('X');
@@ -125,19 +149,30 @@ describe('GameEngine', () => {
     });
 
     it('should not process invalid move', () => {
-      state.board[0] = 'O'; // Occupy the cell
+      const board: readonly Cell[] = [
+        'O', null, null,
+        null, null, null,
+        null, null, null
+      ];
+      const state = createTestGameState(board);
+      const move: Move = {
+        player: 'X',
+        position: 0, // Already occupied
+        timestamp: Date.now()
+      };
       
       const newState = engine.processMove(state, move);
-
-      expect(newState).toBe(state); // Should return same state
+      
+      expect(newState).toBe(state); // Should return same state for invalid move
     });
 
     it('should detect winner after move', () => {
-      state.board = [
+      const board: readonly Cell[] = [
         'X', 'X', null,
         'O', 'O', null,
         null, null, null
       ];
+      const state = createTestGameState(board);
       
       const winningMove: Move = {
         player: 'X',
@@ -153,11 +188,12 @@ describe('GameEngine', () => {
     });
 
     it('should detect draw when board is full', () => {
-      state.board = [
+      const board: readonly Cell[] = [
         'X', 'O', 'X',
         'O', 'O', 'X',
         'O', 'X', null
       ];
+      const state = createTestGameState(board, { currentPlayer: 'O' });
       
       const drawMove: Move = {
         player: 'O',
@@ -171,4 +207,6 @@ describe('GameEngine', () => {
       expect(newState.status).toBe('draw');
     });
   });
+
+
 });

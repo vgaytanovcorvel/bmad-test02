@@ -1,15 +1,20 @@
 import { createEmptyBoard, isValidPosition, isCellEmpty, getOpponent, formatPlayerSymbol } from './utils';
-import { GameState, Player, Board } from './types';
+import { GameState, Player, Cell, GameConfig } from './types';
+
+// Helper function to create test GameConfig
+function createTestConfig(): GameConfig {
+  return {
+    boardSize: 3,
+    kInRow: 3,
+    firstPlayer: 'X',
+    mode: 'human-vs-human'
+  };
+}
 
 describe('Shared Library Integration Tests', () => {
   describe('Board and Position Validation Integration', () => {
-    let board: Board;
-
-    beforeEach(() => {
-      board = createEmptyBoard();
-    });
-
     it('should create valid board and validate all positions', () => {
+      const board = createEmptyBoard();
       expect(board).toHaveLength(9);
       
       // All positions should be valid and empty initially
@@ -20,7 +25,9 @@ describe('Shared Library Integration Tests', () => {
     });
 
     it('should handle board state changes through gameplay simulation', () => {
-      // Simulate a game sequence
+      // Create a mutable board for simulation
+      const mutableBoard: Cell[] = Array(9).fill(null);
+      
       const gameSequence: { position: number; player: Player }[] = [
         { position: 0, player: 'X' },
         { position: 4, player: 'O' },
@@ -31,27 +38,29 @@ describe('Shared Library Integration Tests', () => {
       gameSequence.forEach(({ position, player }) => {
         // Validate position before move
         expect(isValidPosition(position)).toBe(true);
-        expect(isCellEmpty(board, position)).toBe(true);
+        expect(isCellEmpty(mutableBoard, position)).toBe(true);
         
         // Make move
-        board[position] = player;
+        mutableBoard[position] = player;
         
         // Validate position after move
-        expect(isCellEmpty(board, position)).toBe(false);
+        expect(isCellEmpty(mutableBoard, position)).toBe(false);
       });
 
       // Verify final board state
-      expect(board[0]).toBe('X');
-      expect(board[1]).toBe('X');
-      expect(board[3]).toBe('O');
-      expect(board[4]).toBe('O');
+      expect(mutableBoard[0]).toBe('X');
+      expect(mutableBoard[1]).toBe('X');
+      expect(mutableBoard[3]).toBe('O');
+      expect(mutableBoard[4]).toBe('O');
       
       // Verify empty cells
-      expect(isCellEmpty(board, 2)).toBe(true);
-      expect(isCellEmpty(board, 5)).toBe(true);
+      expect(isCellEmpty(mutableBoard, 2)).toBe(true);
+      expect(isCellEmpty(mutableBoard, 5)).toBe(true);
     });
 
     it('should validate edge cases and boundary conditions', () => {
+      const board = createEmptyBoard();
+      
       // Invalid positions
       expect(isValidPosition(-1)).toBe(false);
       expect(isValidPosition(9)).toBe(false);
@@ -78,12 +87,18 @@ describe('Shared Library Integration Tests', () => {
     });
 
     it('should format player symbols consistently', () => {
+      const config = createTestConfig();
+      const board: readonly Cell[] = ['X', 'O', 'X', null, null, null, 'O', 'X', null];
+      
       const gameState: GameState = {
-        board: ['X', 'O', 'X', null, null, null, 'O', 'X', null],
+        board,
         currentPlayer: 'O',
         winner: null,
         status: 'playing',
-        moveHistory: []
+        moveHistory: [],
+        winningLine: null,
+        config,
+        startTime: Date.now()
       };
 
       // Test formatting for all board positions
@@ -101,12 +116,14 @@ describe('Shared Library Integration Tests', () => {
     });
 
     it('should maintain data consistency across utility functions', () => {
-      const board = createEmptyBoard();
+      // Create a mutable board for testing
+      const mutableBoard: Cell[] = Array(9).fill(null);
+      mutableBoard[0] = 'X';
+      mutableBoard[4] = 'O';
+      mutableBoard[8] = 'X';
       
-      // Populate board with a realistic game state
-      board[0] = 'X';
-      board[4] = 'O';
-      board[8] = 'X';
+      // Convert to readonly for function calls
+      const board = mutableBoard as readonly Cell[];
       
       // Verify consistency
       expect(isValidPosition(0) && !isCellEmpty(board, 0)).toBe(true);
@@ -126,12 +143,16 @@ describe('Shared Library Integration Tests', () => {
 
   describe('Game State Validation Integration', () => {
     it('should create and validate complete game state objects', () => {
+      const config = createTestConfig();
       const initialState: GameState = {
         board: createEmptyBoard(),
         currentPlayer: 'X',
         winner: null,
         status: 'playing',
-        moveHistory: []
+        moveHistory: [],
+        winningLine: null,
+        config,
+        startTime: Date.now()
       };
 
       // Validate initial state
@@ -140,10 +161,13 @@ describe('Shared Library Integration Tests', () => {
       expect(initialState.status).toBe('playing');
       expect(initialState.moveHistory).toHaveLength(0);
 
-      // Simulate state progression
+      // Create immutable updated state
+      const mutableBoard: Cell[] = [...initialState.board];
+      mutableBoard[0] = 'X';
+      
       const updatedState: GameState = {
         ...initialState,
-        board: [...initialState.board],
+        board: mutableBoard as readonly Cell[],
         currentPlayer: getOpponent(initialState.currentPlayer),
         moveHistory: [{
           player: 'X',
@@ -151,8 +175,6 @@ describe('Shared Library Integration Tests', () => {
           timestamp: Date.now()
         }]
       };
-
-      updatedState.board[0] = 'X';
 
       // Validate updated state
       expect(updatedState.board[0]).toBe('X');
@@ -163,9 +185,12 @@ describe('Shared Library Integration Tests', () => {
     });
 
     it('should handle terminal game states', () => {
+      const config = createTestConfig();
+      const board: readonly Cell[] = ['X', 'X', 'X', 'O', 'O', null, null, null, null];
+      
       // Winning state
       const winningState: GameState = {
-        board: ['X', 'X', 'X', 'O', 'O', null, null, null, null],
+        board,
         currentPlayer: 'O',
         winner: 'X',
         status: 'won',
@@ -176,7 +201,10 @@ describe('Shared Library Integration Tests', () => {
           { player: 'O', position: 4, timestamp: Date.now() - 2000 },
           { player: 'X', position: 2, timestamp: Date.now() - 1000 },
         ],
-        winningLine: [0, 1, 2]
+        winningLine: [0, 1, 2],
+        config,
+        startTime: Date.now() - 6000,
+        endTime: Date.now() - 1000
       };
 
       // Validate winning state

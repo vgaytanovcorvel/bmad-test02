@@ -18,3 +18,4 @@ export * from './lib/interfaces';
 // Export implementations
 export * from './lib/engine';
 export * from './lib/computer-player';
+export * from './lib/implementations';

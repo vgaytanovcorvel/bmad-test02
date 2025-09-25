@@ -5,8 +5,8 @@ test.describe('Basic Navigation E2E Tests', () => {
   test('should navigate to home page successfully', async ({ page }) => {
     await page.goto('/');
     
-    // Since home redirects to health, check that redirect works
-    await expect(page).toHaveTitle(/Health Check/i);
+    // Home now loads the game page by default
+    await expect(page).toHaveTitle(/Tic Tac Toe/i);
     
     // Should have some basic content structure
     await expect(page.locator('body')).toBeVisible();
@@ -14,8 +14,8 @@ test.describe('Basic Navigation E2E Tests', () => {
     // Should have the main application container (use toBeAttached instead of toBeVisible)
     await expect(page.locator('app-root')).toBeAttached();
     
-    // Should show health content after redirect
-    await expect(page.getByTestId('app-name')).toBeVisible();
+    // Should show game page content
+    await expect(page.getByTestId('game-page')).toBeVisible();
   });
 
   test('should be responsive across different viewports', async ({ page }) => {

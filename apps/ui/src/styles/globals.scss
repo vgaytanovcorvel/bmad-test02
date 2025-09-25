@@ -5,7 +5,8 @@
 :root {
   /* Game-specific CSS custom properties */
   --game-board-size: 300px;
-  --cell-size: calc(var(--game-board-size) / 3);
+  --board-dimension: 3; /* Default 3x3 board */
+  --cell-size: calc(var(--game-board-size) / var(--board-dimension));
   --cell-gap: 8px;
   
   /* Animation timing */
@@ -132,6 +133,70 @@
 @media (max-width: 480px) {
   :root {
     --game-board-size: 260px;
+  }
+}
+
+/* Board size variants */
+.board-3x3 {
+  --board-dimension: 3;
+}
+
+.board-4x4 {
+  --board-dimension: 4;
+}
+
+/* Game board styling */
+.game-board {
+  display: grid;
+  gap: var(--cell-gap);
+  padding: 1rem;
+  background: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin: 0 auto;
+  width: var(--game-board-size);
+  height: var(--game-board-size);
+  
+  &.board-3x3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  &.board-4x4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.game-cell {
+  aspect-ratio: 1;
+  border: 2px solid #e5e7eb;
+  border-radius: 0.25rem;
+  background: #f9fafb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+  
+  &:hover:not(:disabled) {
+    background: #f3f4f6;
+    border-color: #3b82f6;
+  }
+  
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+  
+  &.occupied {
+    cursor: default;
+  }
+  
+  &.winning {
+    background: #fef3c7;
+    border-color: #f59e0b;
+    animation: winningPulse 1s ease-in-out infinite;
   }
 }
 

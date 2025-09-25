@@ -1,18 +1,21 @@
 /**
  * Win Detector Utility
  * 
- * Provides efficient k-in-row detection for 3x3 tic-tac-toe boards.
+ * Provides efficient k-in-row detection for tic-tac-toe boards.
+ * Supports both 3x3 and 4x4 board sizes with k=3 win condition.
  * Implements separate methods for rows, columns, and diagonals detection
  * following enterprise standards with small, focused methods.
  * 
- * @since 2.2.0
+ * @since 2.2.0 (3x3 support)
+ * @since 2.3.0 (4x4 support)
  */
 
 import type { Cell, GameState } from '@libs/shared';
 
 /**
  * Utility class for detecting winning lines in tic-tac-toe games.
- * Optimized for 3x3 boards with k=3 consecutive cells to win.
+ * Supports both 3x3 and 4x4 boards with k=3 consecutive cells to win.
+ * Automatically routes to appropriate detection methods based on board size.
  */
 export class WinDetector {
   
@@ -111,8 +114,115 @@ export class WinDetector {
   }
   
   /**
+   * Checks all rows for winning lines in a 4x4 board.
+   * Uses sliding window pattern to check 2 win positions per row.
+   * Row 0: [0,1,2], [1,2,3] - Row 1: [4,5,6], [5,6,7], etc.
+   * 
+   * @param board - The current board state (16-element array)
+   * @returns Array of winning row coordinates, empty if no row wins
+   * 
+   * @example
+   * ```typescript
+   * const board: Cell[] = ['X', 'X', 'X', null, null, null, null, null, ...];
+   * const detector = new WinDetector();
+   * const result = detector.checkRows4x4(board);
+   * // Returns: [[0, 1, 2]]
+   * ```
+   */
+  checkRows4x4(board: readonly Cell[]): number[][] {
+    const winningLines: number[][] = [];
+    
+    // Check each row with sliding window of size 3
+    for (let row = 0; row < 4; row++) {
+      for (let startCol = 0; startCol <= 1; startCol++) { // 2 windows per row
+        const baseIndex = row * 4 + startCol;
+        const positions = [baseIndex, baseIndex + 1, baseIndex + 2];
+        
+        if (this.isWinningLine(board, positions)) {
+          winningLines.push(positions);
+        }
+      }
+    }
+    
+    return winningLines;
+  }
+
+  /**
+   * Checks all columns for winning lines in a 4x4 board.
+   * Uses sliding window pattern to check 2 win positions per column.
+   * Col 0: [0,4,8], [4,8,12] - Col 1: [1,5,9], [5,9,13], etc.
+   * 
+   * @param board - The current board state (16-element array)
+   * @returns Array of winning column coordinates, empty if no column wins
+   * 
+   * @example
+   * ```typescript
+   * const board: Cell[] = ['X', null, null, null, 'X', null, null, null, 'X', ...];
+   * const detector = new WinDetector();
+   * const result = detector.checkColumns4x4(board);
+   * // Returns: [[0, 4, 8]]
+   * ```
+   */
+  checkColumns4x4(board: readonly Cell[]): number[][] {
+    const winningLines: number[][] = [];
+    
+    // Check each column with sliding window of size 3
+    for (let col = 0; col < 4; col++) {
+      for (let startRow = 0; startRow <= 1; startRow++) { // 2 windows per column
+        const baseIndex = startRow * 4 + col;
+        const positions = [baseIndex, baseIndex + 4, baseIndex + 8];
+        
+        if (this.isWinningLine(board, positions)) {
+          winningLines.push(positions);
+        }
+      }
+    }
+    
+    return winningLines;
+  }
+
+  /**
+   * Checks both main and anti-diagonals for winning lines in a 4x4 board.
+   * Main diagonals: [0,5,10], [1,6,11], [4,9,14], [5,10,15]
+   * Anti-diagonals: [2,5,8], [3,6,9], [6,9,12], [7,10,13]
+   * 
+   * @param board - The current board state (16-element array)
+   * @returns Array of winning diagonal coordinates, empty if no diagonal wins
+   * 
+   * @example
+   * ```typescript
+   * const board: Cell[] = ['X', null, null, null, null, 'X', null, null, null, null, 'X', ...];
+   * const detector = new WinDetector();
+   * const result = detector.checkDiagonals4x4(board);
+   * // Returns: [[0, 5, 10]]
+   * ```
+   */
+  checkDiagonals4x4(board: readonly Cell[]): number[][] {
+    const winningLines: number[][] = [];
+    
+    // Main diagonals (top-left to bottom-right)
+    const mainDiagonals = [
+      [0, 5, 10], [1, 6, 11], [4, 9, 14], [5, 10, 15]
+    ];
+    
+    // Anti-diagonals (top-right to bottom-left)  
+    const antiDiagonals = [
+      [2, 5, 8], [3, 6, 9], [6, 9, 12], [7, 10, 13]
+    ];
+    
+    [...mainDiagonals, ...antiDiagonals].forEach(positions => {
+      if (this.isWinningLine(board, positions)) {
+        winningLines.push(positions);
+      }
+    });
+    
+    return winningLines;
+  }
+
+  /**
    * Combines all k-in-row detection methods to find all winning lines.
    * Integrates results from row, column, and diagonal detection.
+   * Automatically detects board size and routes to appropriate methods.
    * 
    * @param state - Current game state to analyze
    * @returns Array containing all winning line coordinates
@@ -126,19 +236,29 @@ export class WinDetector {
    * ```
    */
   kInRow(state: GameState): number[][] {
-    const allWinningLines: number[][] = [];
+    const boardSize = state.config.boardSize;
     
-    // Combine results from all detection methods
-    allWinningLines.push(...this.checkRows(state.board));
-    allWinningLines.push(...this.checkColumns(state.board));
-    allWinningLines.push(...this.checkDiagonals(state.board));
+    if (boardSize === 3) {
+      const allWinningLines: number[][] = [];
+      allWinningLines.push(...this.checkRows(state.board));
+      allWinningLines.push(...this.checkColumns(state.board));
+      allWinningLines.push(...this.checkDiagonals(state.board));
+      return allWinningLines;
+    } else if (boardSize === 4) {
+      const allWinningLines: number[][] = [];
+      allWinningLines.push(...this.checkRows4x4(state.board));
+      allWinningLines.push(...this.checkColumns4x4(state.board));
+      allWinningLines.push(...this.checkDiagonals4x4(state.board));
+      return allWinningLines;
+    }
     
-    return allWinningLines;
+    return [];
   }
   
   /**
    * Checks if board is in a draw state.
    * Draw occurs when all positions are occupied but no winning lines exist.
+   * Works for both 3x3 (9 cells) and 4x4 (16 cells) boards.
    * 
    * @param state - Current game state to check
    * @returns true if game is a draw, false otherwise
@@ -150,10 +270,10 @@ export class WinDetector {
    * ```
    */
   isDraw(state: GameState): boolean {
-    // Check if board is full
+    // Check if board is full (works for both 3x3 and 4x4)
     const isBoardFull = state.board.every(cell => cell !== null);
     
-    // Check if no winning lines exist
+    // Check if no winning lines exist (updated kInRow handles both sizes)
     const winningLines = this.kInRow(state);
     const hasWinner = winningLines.length > 0;
     

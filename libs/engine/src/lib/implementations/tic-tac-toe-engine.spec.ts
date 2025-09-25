@@ -516,4 +516,322 @@ describe('TicTacToeEngine', () => {
       expect(allWinningLines).toContainEqual([0, 3, 6]);
     });
   });
+
+  describe('4x4 Board Support', () => {
+    describe('initialState with 4x4 configuration', () => {
+      it('should create valid initial 4x4 game state', () => {
+        const config: GameConfig = {
+          boardSize: 4,
+          kInRow: 3,
+          firstPlayer: 'X',
+          mode: 'human-vs-human'
+        };
+        
+        const state = engine.initialState(config);
+        
+        expect(state.board).toHaveLength(16);
+        expect(state.board.every(cell => cell === null)).toBe(true);
+        expect(state.currentPlayer).toBe('X');
+        expect(state.moveHistory).toHaveLength(0);
+        expect(state.status).toBe('playing');
+        expect(state.winner).toBe(null);
+        expect(state.winningLine).toBe(null);
+        expect(state.config).toEqual(config);
+      });
+
+      it('should respect firstPlayer configuration in 4x4', () => {
+        const configO: GameConfig = {
+          boardSize: 4,
+          kInRow: 3,
+          firstPlayer: 'O',
+          mode: 'human-vs-computer'
+        };
+        
+        const state = engine.initialState(configO);
+        expect(state.currentPlayer).toBe('O');
+        expect(state.config.firstPlayer).toBe('O');
+      });
+    });
+
+    describe('legalMoves with 4x4 board', () => {
+      it('should return all 16 positions for empty 4x4 board', () => {
+        const config: GameConfig = {
+          boardSize: 4,
+          kInRow: 3,
+          firstPlayer: 'X',
+          mode: 'human-vs-human'
+        };
+        
+        const state = engine.initialState(config);
+        const legalMoves = engine.legalMoves(state);
+        
+        expect(legalMoves).toHaveLength(16);
+        expect(legalMoves).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]);
+      });
+
+      it('should return only empty positions for partially filled 4x4 board', () => {
+        const config: GameConfig = {
+          boardSize: 4,
+          kInRow: 3,
+          firstPlayer: 'X',
+          mode: 'human-vs-human'
+        };
+        
+        const initialState = engine.initialState(config);
+        
+        // Apply some moves
+        const move1: Move = { player: 'X', position: 0, timestamp: Date.now() };
+        const move2: Move = { player: 'O', position: 5, timestamp: Date.now() };
+        const move3: Move = { player: 'X', position: 10, timestamp: Date.now() };
+        
+        let state = engine.applyMove(initialState, move1);
+        state = engine.applyMove(state, move2);
+        state = engine.applyMove(state, move3);
+        
+        const legalMoves = engine.legalMoves(state);
+        expect(legalMoves).toHaveLength(13);
+        expect(legalMoves).not.toContain(0);
+        expect(legalMoves).not.toContain(5);
+        expect(legalMoves).not.toContain(10);
+      });
+
+      it('should return empty array for terminal 4x4 state', () => {
+        const config: GameConfig = {
+          boardSize: 4,
+          kInRow: 3,
+          firstPlayer: 'X',
+          mode: 'human-vs-human'
+        };
+        
+        let state = engine.initialState(config);
+        
+        // Create winning sequence for X in 4x4: [0,1,2] row win
+        const moves: Move[] = [
+          { player: 'X', position: 0, timestamp: Date.now() },
+          { player: 'O', position: 4, timestamp: Date.now() },
+          { player: 'X', position: 1, timestamp: Date.now() },
+          { player: 'O', position: 5, timestamp: Date.now() },
+          { player: 'X', position: 2, timestamp: Date.now() } // X wins
+        ];
+        
+        moves.forEach(move => {
+          state = engine.applyMove(state, move);
+        });
+        
+        expect(engine.isTerminal(state)).toBe(true);
+        const legalMoves = engine.legalMoves(state);
+        expect(legalMoves).toHaveLength(0);
+      });
+    });
+
+    describe('applyMove with 4x4 board', () => {
+      let initialState4x4: GameState;
+      
+      beforeEach(() => {
+        const config: GameConfig = {
+          boardSize: 4,
+          kInRow: 3,
+          firstPlayer: 'X',
+          mode: 'human-vs-human'
+        };
+        initialState4x4 = engine.initialState(config);
+      });
+
+      it('should apply valid move and update 4x4 state correctly', () => {
+        const move: Move = { player: 'X', position: 5, timestamp: Date.now() };
+        const newState = engine.applyMove(initialState4x4, move);
+        
+        // Original state should be unchanged (immutability)
+        expect(initialState4x4.board[5]).toBe(null);
+        expect(initialState4x4.currentPlayer).toBe('X');
+        expect(initialState4x4.moveHistory).toHaveLength(0);
+        
+        // New state should reflect the move
+        expect(newState.board[5]).toBe('X');
+        expect(newState.currentPlayer).toBe('O'); // Switched players
+        expect(newState.moveHistory).toHaveLength(1);
+        expect(newState.moveHistory[0]).toEqual(move);
+        expect(newState.status).toBe('playing');
+        expect(newState.winner).toBe(null);
+        expect(newState.winningLine).toBe(null);
+      });
+
+      it('should detect row win in 4x4 board', () => {
+        let state = initialState4x4;
+        
+        // Create winning sequence for X: [0,1,2] row win in 4x4
+        const moves: Move[] = [
+          { player: 'X', position: 0, timestamp: Date.now() },
+          { player: 'O', position: 4, timestamp: Date.now() },
+          { player: 'X', position: 1, timestamp: Date.now() },
+          { player: 'O', position: 5, timestamp: Date.now() },
+          { player: 'X', position: 2, timestamp: Date.now() } // X wins
+        ];
+        
+        moves.forEach(move => {
+          state = engine.applyMove(state, move);
+        });
+        
+        expect(state.status).toBe('won');
+        expect(state.winner).toBe('X');
+        expect(state.winningLine).toEqual([0, 1, 2]);
+        expect(state.currentPlayer).toBe('X'); // Current player should remain X when game ends
+        expect(state.endTime).toBeDefined();
+      });
+
+      it('should detect column win in 4x4 board', () => {
+        let state = initialState4x4;
+        
+        // Create winning sequence for O: [1,5,9] column win in 4x4
+        const moves: Move[] = [
+          { player: 'X', position: 0, timestamp: Date.now() },
+          { player: 'O', position: 1, timestamp: Date.now() },
+          { player: 'X', position: 2, timestamp: Date.now() },
+          { player: 'O', position: 5, timestamp: Date.now() },
+          { player: 'X', position: 3, timestamp: Date.now() },
+          { player: 'O', position: 9, timestamp: Date.now() } // O wins
+        ];
+        
+        moves.forEach(move => {
+          state = engine.applyMove(state, move);
+        });
+        
+        expect(state.status).toBe('won');
+        expect(state.winner).toBe('O');
+        expect(state.winningLine).toEqual([1, 5, 9]);
+        expect(state.currentPlayer).toBe('O'); // Current player should remain O when game ends
+      });
+
+      it('should detect diagonal win in 4x4 board', () => {
+        let state = initialState4x4;
+        
+        // Create winning sequence for X: [0,5,10] diagonal win in 4x4
+        const moves: Move[] = [
+          { player: 'X', position: 0, timestamp: Date.now() },
+          { player: 'O', position: 1, timestamp: Date.now() },
+          { player: 'X', position: 5, timestamp: Date.now() },
+          { player: 'O', position: 2, timestamp: Date.now() },
+          { player: 'X', position: 10, timestamp: Date.now() } // X wins diagonal
+        ];
+        
+        moves.forEach(move => {
+          state = engine.applyMove(state, move);
+        });
+        
+        expect(state.status).toBe('won');
+        expect(state.winner).toBe('X');
+        expect(state.winningLine).toEqual([0, 5, 10]);
+      });
+
+      it('should detect anti-diagonal win in 4x4 board', () => {
+        let state = initialState4x4;
+        
+        // Create winning sequence for O: [3,6,9] anti-diagonal win in 4x4
+        const moves: Move[] = [
+          { player: 'X', position: 0, timestamp: Date.now() },
+          { player: 'O', position: 3, timestamp: Date.now() },
+          { player: 'X', position: 1, timestamp: Date.now() },
+          { player: 'O', position: 6, timestamp: Date.now() },
+          { player: 'X', position: 4, timestamp: Date.now() }, // Changed from 2 to avoid row win
+          { player: 'O', position: 9, timestamp: Date.now() } // O wins anti-diagonal
+        ];
+        
+        moves.forEach(move => {
+          if (!engine.isTerminal(state)) {
+            state = engine.applyMove(state, move);
+          }
+        });
+        
+        expect(state.status).toBe('won');
+        expect(state.winner).toBe('O');
+        expect(state.winningLine).toEqual([3, 6, 9]);
+      });
+
+      it('should handle draw scenario in 4x4 board', () => {
+        // Create a draw scenario by filling the board without any wins
+        const drawBoard: Cell[] = [
+          'X', 'O', 'O', 'X',
+          'O', 'X', 'X', 'O',
+          'X', 'O', 'O', 'X',
+          'O', 'X', 'X', 'O'
+        ];
+        
+        // For testing purposes, create a state with the draw board
+        const drawState: GameState = {
+          ...initialState4x4,
+          board: drawBoard as readonly Cell[],
+          status: 'draw',
+          winner: null,
+          winningLine: null
+        };
+        
+        // Test that the engine correctly identifies this as terminal (draw)
+        expect(engine.isTerminal(drawState)).toBe(true);
+        expect(engine.winner(drawState)).toBe(null); // Draw has no winner
+      });
+    });
+
+    describe('4x4 Integration with kInRow', () => {
+      it('should integrate correctly with WinDetector for 4x4 boards', () => {
+        const config: GameConfig = {
+          boardSize: 4,
+          kInRow: 3,
+          firstPlayer: 'X',
+          mode: 'human-vs-human'
+        };
+        
+        let state = engine.initialState(config);
+        
+        // Create a board with multiple wins in 4x4
+        const moves: Move[] = [
+          { player: 'X', position: 0, timestamp: Date.now() },
+          { player: 'O', position: 4, timestamp: Date.now() },
+          { player: 'X', position: 1, timestamp: Date.now() },
+          { player: 'O', position: 5, timestamp: Date.now() },
+          { player: 'X', position: 2, timestamp: Date.now() } // X wins row [0,1,2]
+        ];
+        
+        moves.forEach(move => {
+          state = engine.applyMove(state, move);
+        });
+        
+        expect(engine.isTerminal(state)).toBe(true);
+        expect(engine.winner(state)).toBe('X');
+        expect(state.winningLine).toEqual([0, 1, 2]);
+        
+        const allWinningLines = engine.kInRow(state);
+        expect(allWinningLines).toContainEqual([0, 1, 2]);
+      });
+    });
+
+    describe('Cross-Board Size Compatibility', () => {
+      it('should maintain 3x3 functionality after 4x4 implementation', () => {
+        // Test 3x3 configuration
+        const config3x3: GameConfig = {
+          boardSize: 3,
+          kInRow: 3,
+          firstPlayer: 'X',
+          mode: 'human-vs-human'
+        };
+        
+        const state3x3 = engine.initialState(config3x3);
+        expect(state3x3.board).toHaveLength(9);
+        
+        // Test 4x4 configuration  
+        const config4x4: GameConfig = {
+          boardSize: 4,
+          kInRow: 3,
+          firstPlayer: 'X',
+          mode: 'human-vs-human'
+        };
+        
+        const state4x4 = engine.initialState(config4x4);
+        expect(state4x4.board).toHaveLength(16);
+        
+        // Verify they don't interfere with each other
+        expect(engine.legalMoves(state3x3)).toHaveLength(9);
+        expect(engine.legalMoves(state4x4)).toHaveLength(16);
+      });
+    });
+  });
 });

@@ -219,14 +219,14 @@ describe('TicTacToeEngine', () => {
       const invalidMove: Move = { player: 'X', position: 9, timestamp: Date.now() };
       
       expect(() => engine.applyMove(initialState, invalidMove))
-        .toThrow('Invalid position 9 for board size 9');
+        .toThrow(/Invalid move position.*Valid range: 0-8 for 3x3 board/);
     });
     
     it('should throw error for negative position', () => {
       const invalidMove: Move = { player: 'X', position: -1, timestamp: Date.now() };
       
       expect(() => engine.applyMove(initialState, invalidMove))
-        .toThrow('Invalid position -1 for board size 9');
+        .toThrow(/Invalid move position.*Valid range: 0-8 for 3x3 board/);
     });
     
     it('should throw error for occupied position', () => {
@@ -236,14 +236,14 @@ describe('TicTacToeEngine', () => {
       const move2: Move = { player: 'O', position: 4, timestamp: Date.now() };
       
       expect(() => engine.applyMove(state, move2))
-        .toThrow('Position 4 is already occupied');
+        .toThrow(/Cannot move to occupied cell at position 4.*Cell contains: X/);
     });
     
     it('should throw error for wrong player move', () => {
       const wrongPlayerMove: Move = { player: 'O', position: 4, timestamp: Date.now() };
       
       expect(() => engine.applyMove(initialState, wrongPlayerMove))
-        .toThrow('Move player O does not match current player X');
+        .toThrow(/Move player O does not match current player X/);
     });
     
     it('should throw error for move on terminal state', () => {
@@ -265,8 +265,9 @@ describe('TicTacToeEngine', () => {
       const moveAfterWin: Move = { player: 'O', position: 5, timestamp: Date.now() };
       
       expect(() => engine.applyMove(state, moveAfterWin))
-        .toThrow('Cannot apply move to terminal game state');
+        .toThrow(/Cannot apply move to terminal game.*Game status: won.*Winner: X/);
     });
+
   });
   
   describe('isTerminal method', () => {
@@ -350,7 +351,7 @@ describe('TicTacToeEngine', () => {
     
     it('should throw error for non-terminal state', () => {
       expect(() => engine.winner(initialState))
-        .toThrow('Cannot determine winner of non-terminal game state');
+        .toThrow(/Cannot determine winner of non-terminal game state/);
     });
     
     it('should return correct winner for won game', () => {

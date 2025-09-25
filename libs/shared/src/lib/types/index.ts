@@ -20,3 +20,6 @@ export * from './game-state-types';
 
 // Move and result types
 export * from './move-types';
+
+// Error types
+export * from './error-types';

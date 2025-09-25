@@ -73,7 +73,7 @@ export class TicTacToeEngine implements Engine {
   applyMove(state: GameState, move: Move): GameState {
     // Validate move
     if (this.isTerminal(state)) {
-      throw new Error('Cannot apply move to terminal game state');
+      throw new Error(`Cannot apply move to terminal game. Game status: ${state.status}, Winner: ${state.winner}`);
     }
     
     if (move.player !== state.currentPlayer) {
@@ -81,11 +81,11 @@ export class TicTacToeEngine implements Engine {
     }
     
     if (move.position < 0 || move.position >= state.board.length) {
-      throw new Error(`Invalid position ${move.position} for board size ${state.board.length}`);
+      throw new Error(`Invalid move position: ${move.position}. Valid range: 0-${state.board.length - 1} for ${state.config.boardSize}x${state.config.boardSize} board`);
     }
     
     if (state.board[move.position] !== null) {
-      throw new Error(`Position ${move.position} is already occupied`);
+      throw new Error(`Cannot move to occupied cell at position ${move.position}. Cell contains: ${state.board[move.position]}`);
     }
     
     // Apply move to create new board

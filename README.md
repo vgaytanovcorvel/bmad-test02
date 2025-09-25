@@ -124,6 +124,51 @@ The development server runs with:
 - **Location**: `apps/ui-e2e/`
 - **Coverage**: Critical user journeys and game functionality
 
+#### Running E2E Tests
+
+**Pre-release Requirement**: All E2E tests must pass before any release.
+
+```bash
+# Run E2E tests (mandatory before release)
+pnpm e2e
+
+# Run E2E tests in headed mode for debugging
+pnpm nx e2e ui-e2e --headed
+
+# Run specific E2E test files
+pnpm nx e2e ui-e2e --grep "game flow"
+
+# Generate E2E test report
+pnpm nx e2e ui-e2e --reporter=html
+```
+
+#### E2E Test Requirements
+
+1. **Game Board Rendering**: Verify 3x3 grid displays correctly
+2. **Player Moves**: Test X and O placement functionality
+3. **Win Detection**: Validate winning combinations detection
+4. **Game Reset**: Ensure game can be restarted properly
+5. **AI Player**: Test computer player makes valid moves
+6. **Responsive Design**: Verify mobile and desktop layouts
+
+#### E2E Test Troubleshooting
+
+**Tests fail to start:**
+- Ensure development server is running: `pnpm serve`
+- Check if port 4200 is available
+- Verify Playwright browsers are installed: `npx playwright install`
+
+**Tests are flaky:**
+- Add appropriate wait conditions
+- Use data-testid selectors for reliability
+- Increase timeout values if needed
+- Check for race conditions in async operations
+
+**Performance issues:**
+- Run tests in headless mode for faster execution
+- Use `--workers` flag to control parallelization
+- Enable test sharding for large test suites
+
 ## 📁 Project Structure
 
 ### Applications
@@ -236,13 +281,87 @@ pnpm install
 - [Testing Guidelines](./docs/ui-architecture/testing-requirements.md)
 - [Deployment Guide](./docs/deployment/)
 
+## 🔒 Quality Assurance
+
+### Quality Gate Requirements
+
+Before any code merge or release, the following quality gates must pass:
+
+#### 1. Code Quality Pipeline
+```bash
+# Run complete validation pipeline
+pnpm validate
+```
+This executes:
+- **Linting**: ESLint + Prettier validation across all projects
+- **Testing**: Unit + Integration tests with 85% coverage threshold
+- **Building**: Production build verification for all projects
+
+#### 2. E2E Testing (Manual Gate)
+```bash
+# Mandatory before release
+pnpm e2e
+```
+
+#### 3. Coverage Requirements
+- **Threshold**: ≥85% code coverage (lines, functions, branches, statements)
+- **Enforcement**: Coverage thresholds block builds below threshold
+- **Reporting**: HTML, text, and LCOV reports generated
+
+#### 4. Pre-Merge Checklist
+- [ ] `pnpm validate` passes without errors
+- [ ] `pnpm e2e` passes all tests
+- [ ] Coverage maintains ≥85% threshold
+- [ ] No ESLint errors or warnings
+- [ ] All TypeScript compilation succeeds
+- [ ] Code follows established patterns and standards
+
+### Quality Automation Scripts
+
+```bash
+# Individual quality checks
+pnpm lint              # ESLint across all projects
+pnpm test              # Unit + Integration tests
+pnpm test:unit         # Unit tests only
+pnpm test:integration  # Integration tests only
+pnpm coverage          # Generate coverage reports
+pnpm build             # Build all projects
+pnpm e2e               # E2E tests (manual gate)
+
+# Combined pipeline
+pnpm validate          # lint → test → build sequence
+```
+
+### Failure Resolution
+
+**Lint Failures:**
+- Fix ESLint errors: `pnpm lint:fix`
+- Address remaining warnings manually
+- Follow Angular and TypeScript best practices
+
+**Test Failures:**
+- Review test output for specific failures
+- Update tests if behavior changes are intentional
+- Maintain coverage threshold ≥85%
+
+**Build Failures:**
+- Check TypeScript compilation errors
+- Verify all imports and dependencies
+- Ensure proper configuration files
+
+**E2E Failures:**
+- Check development server is running
+- Review Playwright test reports
+- Update tests for UI changes
+- Verify cross-browser compatibility
+
 ## 🤝 Contributing
 
 1. Follow the established code standards and patterns
 2. Write comprehensive tests for new features  
 3. Update documentation as needed
 4. Use conventional commit messages
-5. Ensure all quality gates pass before merging
+5. **Ensure all quality gates pass before merging** (see Quality Assurance section above)
 
 ## 📄 License
 

@@ -1,7 +1,7 @@
 {
   "name": "engine",
-  "$schema": "../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "engine/src",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/engine/src",
   "projectType": "library",
   "tags": [],
   "targets": {
@@ -9,17 +9,17 @@
       "executor": "@nx/js:tsc",
       "outputs": ["{options.outputPath}"],
       "options": {
-        "outputPath": "dist/engine",
-        "main": "engine/src/index.ts",
-        "tsConfig": "engine/tsconfig.lib.json",
-        "assets": ["engine/*.md"]
+        "outputPath": "dist/libs/engine",
+        "main": "libs/engine/src/index.ts",
+        "tsConfig": "libs/engine/tsconfig.lib.json",
+        "assets": ["libs/engine/*.md"]
       }
     },
     "test": {
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
       "options": {
-        "jestConfig": "engine/jest.config.ts"
+        "jestConfig": "libs/engine/jest.config.ts"
       }
     }
   }

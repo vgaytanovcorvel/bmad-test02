@@ -267,3 +267,143 @@
 .pulse-animation {
   animation: pulse 2s infinite;
 }
+
+/* Visual Enhancement Animations - Only active when .transitions-enabled is present */
+.transitions-enabled {
+  /* Enhanced cell hover and focus transitions */
+  .cell {
+    transition: all 150ms ease-in-out;
+    
+    &:hover:not(:disabled) {
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    
+    &:focus {
+      box-shadow: 0 0 0 4px rgba(147, 197, 253, 0.5);
+      transition: box-shadow 150ms ease-in-out;
+    }
+    
+    /* Enhanced move animation for newly placed symbols */
+    &.new-move {
+      animation: moveAppear 200ms ease-out;
+    }
+    
+    /* Enhanced winning cell animation */
+    &.winning {
+      animation: winningPulse 200ms ease-in-out;
+    }
+  }
+  
+  /* Enhanced game board transitions */
+  .game-board {
+    transition: all 200ms ease-in-out;
+    
+    &.size-changing {
+      animation: boardResize 200ms ease-in-out;
+    }
+  }
+  
+  /* Enhanced game status transitions */
+  .game-status {
+    transition: all 150ms ease-in-out;
+    
+    &.status-change {
+      animation: statusUpdate 150ms ease-in-out;
+    }
+  }
+  
+  /* Enhanced current player indicator transitions */
+  .current-player {
+    transition: all 150ms ease-in-out;
+    
+    &.player-change {
+      animation: playerSwitch 150ms ease-in-out;
+    }
+  }
+  
+  /* Enhanced game controls transitions */
+  .game-controls {
+    .control-select {
+      transition: all 150ms ease-in-out;
+      
+      &:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+    }
+    
+    .new-game-btn {
+      transition: all 150ms ease-in-out;
+      
+      &:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+      }
+      
+      &:active {
+        transform: translateY(0);
+      }
+    }
+  }
+}
+
+/* Animation keyframes for visual enhancements (≤200ms each) */
+@keyframes moveAppear {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes winningPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes boardResize {
+  0% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes statusUpdate {
+  0% {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes playerSwitch {
+  0% {
+    opacity: 0.7;
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Enhanced reduced motion override */
+@media (prefers-reduced-motion: reduce) {
+  .transitions-enabled * {
+    animation-duration: 0ms !important;
+    transition-duration: 0ms !important;
+  }
+}

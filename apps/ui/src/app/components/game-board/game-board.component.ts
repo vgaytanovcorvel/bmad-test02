@@ -1,6 +1,7 @@
-import { Component, ChangeDetectionStrategy, computed, inject } from '@angular/core';
+import { Component, ChangeDetectionStrategy, computed, inject, signal, effect, OnDestroy, Injector } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { GameService } from '../../services/game.service';
+import { VisualEnhancementService } from '../../services/visual-enhancement.service';
 import { formatPlayerSymbol } from '@libs/shared';
 
 @Component({
@@ -12,6 +13,7 @@ import { formatPlayerSymbol } from '@libs/shared';
       class="game-board" 
       [class.board-3x3]="boardSize() === 3"
       [class.board-4x4]="boardSize() === 4"
+      [class.size-changing]="isBoardResizing$()"
       [attr.data-testid]="'game-board'"
     >
       @for (cell of boardCells(); track $index) {
@@ -19,6 +21,7 @@ import { formatPlayerSymbol } from '@libs/shared';
           class="cell"
           [class.occupied]="cell !== null"
           [class.winning]="isWinningCell($index)"
+          [class.new-move]="isNewMovePosition($index)"
           [disabled]="isTerminal() || cell !== null"
           (click)="handleCellClick($index)"
           [attr.data-testid]="'cell-' + $index"
@@ -68,8 +71,17 @@ import { formatPlayerSymbol } from '@libs/shared';
   `],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class GameBoardComponent {
+export class GameBoardComponent implements OnDestroy {
   private gameService = inject(GameService);
+  private enhancementService = inject(VisualEnhancementService);
+  private injector = inject(Injector);
+  
+  // Animation state signals
+  private newMovePosition = signal<number | null>(null);
+  private isBoardResizing = signal(false);
+  
+  // Timer cleanup
+  private activeTimeouts: ReturnType<typeof setTimeout>[] = [];
   
   // Reactive state from service
   gameState = this.gameService.gameState;
@@ -78,16 +90,28 @@ export class GameBoardComponent {
   isTerminal = computed(() => this.gameService.isTerminal());
   winningLine = computed(() => this.gameState().winningLine);
   
+  // Animation state accessors
+  protected newMovePosition$ = this.newMovePosition.asReadonly();
+  protected isBoardResizing$ = this.isBoardResizing.asReadonly();
+  
   // Utility function for template
   protected formatPlayerSymbol = formatPlayerSymbol;
   
   handleCellClick(position: number): void {
-    this.gameService.makeMove(position);
+    const success = this.gameService.makeMove(position);
+    
+    if (success && this.enhancementService.enhancementsEnabled()) {
+      this.triggerMoveAnimation(position);
+    }
   }
   
   isWinningCell(position: number): boolean {
     const winningLine = this.winningLine();
     return winningLine ? winningLine.includes(position) : false;
+  }
+  
+  isNewMovePosition(position: number): boolean {
+    return this.newMovePosition() === position;
   }
   
   getCellAriaLabel(position: number): string {
@@ -99,5 +123,52 @@ export class GameBoardComponent {
       return `Cell row ${row} column ${col}, occupied by ${cell}`;
     }
     return `Cell row ${row} column ${col}, empty, click to place mark`;
+  }
+  
+  private triggerMoveAnimation(position: number): void {
+    this.newMovePosition.set(position);
+    
+    // Clear animation state after animation completes (200ms)
+    const timeoutId = setTimeout(() => {
+      this.newMovePosition.set(null);
+    }, 200);
+    this.activeTimeouts.push(timeoutId);
+  }
+  
+  constructor() {
+    // Listen for board size changes to trigger animations
+    // Bind effect to component lifecycle using injector
+    effect((onCleanup) => {
+      this.gameService.boardSizeChangeTrigger();
+      this.triggerBoardSizeAnimation();
+      
+      onCleanup(() => {
+        // Effect cleanup will be handled automatically when component is destroyed
+      });
+    }, { injector: this.injector });
+  }
+  
+  triggerBoardSizeAnimation(): void {
+    if (this.enhancementsEnabled()) {
+      this.isBoardResizing.set(true);
+      
+      // Clear animation state after animation completes (200ms)
+      const timeoutId = setTimeout(() => {
+        this.isBoardResizing.set(false);
+      }, 200);
+      this.activeTimeouts.push(timeoutId);
+    }
+  }
+  
+  private enhancementsEnabled(): boolean {
+    return this.enhancementService.enhancementsEnabled();
+  }
+  
+  ngOnDestroy(): void {
+    // Clean up all active timeouts
+    this.activeTimeouts.forEach(timeoutId => clearTimeout(timeoutId));
+    this.activeTimeouts = [];
+    
+    // Effect cleanup is handled automatically via injector binding
   }
 }

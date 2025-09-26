@@ -1,13 +1,16 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, OnDestroy } from '@angular/core';
 import { EngineFactory, Engine } from '@libs/engine';
 import { GameState, GameConfig, Move, GameMode, BoardSize } from '@libs/shared';
 
 @Injectable({
   providedIn: 'root'
 })
-export class GameService {
+export class GameService implements OnDestroy {
   private engine!: Engine;
   private _gameState = signal<GameState | null>(null);
+  
+  // Timer cleanup
+  private activeTimeouts: ReturnType<typeof setTimeout>[] = [];
   
   // Public reactive state
   gameState = computed(() => this._gameState() ?? this.createInitialState());
@@ -32,6 +35,10 @@ export class GameService {
   currentConfig = computed(() => this.gameState().config);
   currentMode = computed(() => this.currentConfig().mode);
   currentBoardSize = computed(() => this.currentConfig().boardSize);
+  
+  // Animation trigger signal for board size changes
+  private _boardSizeChangeTrigger = signal(0);
+  boardSizeChangeTrigger = this._boardSizeChangeTrigger.asReadonly();
 
   constructor() {
     this.startNewGame();
@@ -64,7 +71,8 @@ export class GameService {
       
       // After human move, check if computer should move next
       if (this.isHumanVsComputerMode() && !this.isTerminal()) {
-        setTimeout(() => this.executeComputerMove(), 500); // Small delay for UX
+        const timeoutId = setTimeout(() => this.executeComputerMove(), 500); // Small delay for UX
+        this.activeTimeouts.push(timeoutId);
       }
       
       return true;
@@ -147,6 +155,9 @@ export class GameService {
   changeBoardSize(boardSize: BoardSize): void {
     const currentConfig = this.currentConfig();
     if (currentConfig && this.canChangeConfiguration()) {
+      // Trigger animation signal before changing
+      this._boardSizeChangeTrigger.set(this._boardSizeChangeTrigger() + 1);
+      
       const newConfig: GameConfig = { ...currentConfig, boardSize };
       this.startNewGame(newConfig);
     }
@@ -182,5 +193,11 @@ export class GameService {
       return this.engine.initialState(config);
     }
     return this.gameState();
+  }
+  
+  ngOnDestroy(): void {
+    // Clean up all active timeouts
+    this.activeTimeouts.forEach(timeoutId => clearTimeout(timeoutId));
+    this.activeTimeouts = [];
   }
 }

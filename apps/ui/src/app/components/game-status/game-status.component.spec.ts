@@ -44,6 +44,11 @@ describe('GameStatusComponent', () => {
     component = fixture.componentInstance;
   });
 
+  afterEach(() => {
+    fixture.destroy();                  // destroys effect scope
+    TestBed.resetTestingModule?.();     // optional, if you create many modules
+  });
+
   it('should create', () => {
     expect(component).toBeTruthy();
   });

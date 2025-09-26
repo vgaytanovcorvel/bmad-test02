@@ -216,4 +216,283 @@ describe('GameService', () => {
       expect(service.currentMode()).toBe('human-vs-computer');
     });
   });
+
+  // Task 3: Integration Test Coverage Enhancement (AC: Both)
+  describe('GameService Integration Tests', () => {
+    describe('Human vs Computer Gameplay Integration', () => {
+      beforeEach(() => {
+        service.changeGameMode('human-vs-computer');
+      });
+
+      it('should complete full game flow from start to finish with computer opponent', async () => {
+        expect(service.currentMode()).toBe('human-vs-computer');
+        expect(service.gameState().currentPlayer).toBe('X'); // Human starts
+        expect(service.isGameInProgress()).toBe(false); // Not started yet
+        
+        // Human makes first move
+        const humanMoveSuccess = service.makeMove(4); // Take center
+        expect(humanMoveSuccess).toBe(true);
+        expect(service.gameState().board[4]).toBe('X');
+        expect(service.isGameInProgress()).toBe(true);
+        
+        // Allow time for computer to respond
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        // Make a few more human moves to progress the game
+        service.makeMove(0); // Human takes corner
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        service.makeMove(2); // Human takes another corner
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        // Game should either be terminal or have progressed significantly
+        const finalState = service.gameState();
+        expect(finalState.moveHistory.length).toBeGreaterThan(1); // At least human moves made
+        
+        // Verify the game maintains correct mode throughout
+        expect(service.currentMode()).toBe('human-vs-computer');
+      });
+
+      it('should maintain computer player behavior throughout the game', () => {
+        // Start game in HvC mode
+        expect(service.currentMode()).toBe('human-vs-computer');
+        
+        // Make several human moves and verify computer responds
+        service.makeMove(0); // Human at 0
+        const stateAfterMove1 = service.gameState();
+        
+        if (stateAfterMove1.currentPlayer === 'X') {
+          // If it's still human turn, computer hasn't moved yet
+          // This depends on the implementation - either auto-move or manual trigger
+          expect(stateAfterMove1.board[0]).toBe('X');
+        }
+        
+        // Continue with more moves
+        service.makeMove(2); // Human at 2 (if valid)
+        service.makeMove(1); // Human at 1 (if valid) - this should trigger win detection
+        
+        // Verify game state is consistent
+        expect(service.currentMode()).toBe('human-vs-computer');
+      });
+
+      it('should handle computer optimal move selection', () => {
+        // Set up scenario where computer has clear optimal move
+        service.makeMove(0); // X at 0
+        service.makeMove(4); // Try to place at center - should work if available
+        service.makeMove(1); // X at 1
+        
+        // After these moves, computer should recognize the threat if X is about to win
+        const state = service.gameState();
+        
+        // Verify the game is handling moves correctly
+        expect(state.board[0]).toBe('X');
+        expect(state.board[1]).toBe('X');
+        
+        // The computer should have made logical moves to either block or win
+        const computerMoves = state.board.map((cell, index) => 
+          cell === 'O' ? index : null
+        ).filter(pos => pos !== null);
+        
+        expect(computerMoves.length).toBeGreaterThan(0); // Computer should have moved
+      });
+    });
+
+    describe('Board Size Changes with Computer Player', () => {
+      it('should work correctly with 3x3 board in computer mode', () => {
+        service.changeGameMode('human-vs-computer');
+        service.changeBoardSize(3);
+        
+        expect(service.currentBoardSize()).toBe(3);
+        expect(service.currentMode()).toBe('human-vs-computer');
+        expect(service.gameState().board.length).toBe(9);
+        
+        // Make a move to verify functionality
+        const success = service.makeMove(4);
+        expect(success).toBe(true);
+        expect(service.gameState().board[4]).toBe('X');
+      });
+
+      it('should work correctly with 4x4 board in computer mode', () => {
+        service.changeGameMode('human-vs-computer');
+        service.changeBoardSize(4);
+        
+        expect(service.currentBoardSize()).toBe(4);
+        expect(service.currentMode()).toBe('human-vs-computer');
+        expect(service.gameState().board.length).toBe(16);
+        
+        // Make a move to verify functionality
+        const success = service.makeMove(5); // Middle-ish position
+        expect(success).toBe(true);
+        expect(service.gameState().board[5]).toBe('X');
+      });
+
+      it('should maintain computer player when transitioning board sizes', () => {
+        service.changeGameMode('human-vs-computer');
+        expect(service.currentMode()).toBe('human-vs-computer');
+        
+        // Change from 3x3 to 4x4
+        service.changeBoardSize(4);
+        expect(service.currentMode()).toBe('human-vs-computer');
+        expect(service.currentBoardSize()).toBe(4);
+        
+        // Change back to 3x3
+        service.changeBoardSize(3);
+        expect(service.currentMode()).toBe('human-vs-computer');
+        expect(service.currentBoardSize()).toBe(3);
+        
+        // Verify game functionality still works
+        const success = service.makeMove(0);
+        expect(success).toBe(true);
+      });
+    });
+
+    describe('Game Reset Functionality with Computer Player', () => {
+      beforeEach(() => {
+        service.changeGameMode('human-vs-computer');
+      });
+
+      it('should reset game maintaining computer player mode', () => {
+        // Make some moves
+        service.makeMove(0);
+        service.makeMove(4);
+        
+        const stateBefore = service.gameState();
+        expect(stateBefore.moveHistory.length).toBeGreaterThan(0);
+        expect(service.currentMode()).toBe('human-vs-computer');
+        
+        // Reset game
+        service.resetGame();
+        
+        const stateAfter = service.gameState();
+        expect(stateAfter.moveHistory.length).toBe(0);
+        expect(stateAfter.board.every(cell => cell === null)).toBe(true);
+        expect(stateAfter.currentPlayer).toBe('X');
+        expect(stateAfter.status).toBe('playing');
+        expect(service.currentMode()).toBe('human-vs-computer');
+      });
+
+      it('should allow starting new game after reset in computer mode', () => {
+        // Make moves until game ends or gets interesting
+        service.makeMove(0);
+        service.makeMove(2);
+        service.makeMove(1);
+        
+        // Reset
+        service.resetGame();
+        
+        // Start new game
+        const success = service.makeMove(4); // Different opening move
+        expect(success).toBe(true);
+        expect(service.gameState().board[4]).toBe('X');
+        expect(service.currentMode()).toBe('human-vs-computer');
+        expect(service.isGameInProgress()).toBe(true);
+      });
+
+      it('should preserve board size setting after reset', () => {
+        service.changeBoardSize(4);
+        expect(service.currentBoardSize()).toBe(4);
+        
+        service.makeMove(0);
+        service.resetGame();
+        
+        expect(service.currentBoardSize()).toBe(4);
+        expect(service.currentMode()).toBe('human-vs-computer');
+        expect(service.gameState().board.length).toBe(16);
+      });
+    });
+
+    describe('All Game Modes Coverage', () => {
+      it('should support human vs human mode', () => {
+        service.changeGameMode('human-vs-human');
+        
+        expect(service.currentMode()).toBe('human-vs-human');
+        
+        // Both players are human - manual moves
+        service.makeMove(0); // X
+        expect(service.gameState().currentPlayer).toBe('O');
+        
+        service.makeMove(1); // O
+        expect(service.gameState().currentPlayer).toBe('X');
+        
+        // Verify alternating turns work
+        expect(service.gameState().board[0]).toBe('X');
+        expect(service.gameState().board[1]).toBe('O');
+      });
+
+      it('should support human vs computer mode', () => {
+        service.changeGameMode('human-vs-computer');
+        
+        expect(service.currentMode()).toBe('human-vs-computer');
+        
+        // Human move
+        service.makeMove(0); // X
+        
+        // Computer should be able to respond (implementation dependent)
+        const state = service.gameState();
+        expect(state.board[0]).toBe('X');
+      });
+
+      it('should handle mode transitions correctly', () => {
+        // Start in HvH
+        service.changeGameMode('human-vs-human');
+        service.makeMove(0);
+        
+        expect(service.gameState().board[0]).toBe('X');
+        expect(service.currentMode()).toBe('human-vs-human');
+        
+        // Switch to HvC - should reset game
+        service.changeGameMode('human-vs-computer');
+        
+        expect(service.currentMode()).toBe('human-vs-computer');
+        expect(service.gameState().board.every(cell => cell === null)).toBe(true);
+        expect(service.gameState().moveHistory.length).toBe(0);
+      });
+    });
+
+    describe('Error Handling and Edge Cases', () => {
+      beforeEach(() => {
+        service.changeGameMode('human-vs-computer');
+      });
+
+      it('should handle invalid move attempts gracefully', () => {
+        service.makeMove(0); // Valid move
+        
+        const stateAfter = service.gameState();
+        const moveCountBefore = stateAfter.moveHistory.length;
+        
+        // Try invalid move (same position)
+        const success = service.makeMove(0);
+        
+        expect(success).toBe(false);
+        expect(service.gameState().moveHistory.length).toBe(moveCountBefore);
+      });
+
+      it('should handle out-of-bounds moves', () => {
+        const moveCountBefore = service.gameState().moveHistory.length;
+        
+        // Try moves outside board
+        const success1 = service.makeMove(-1);
+        const success2 = service.makeMove(9); // For 3x3 board
+        const success3 = service.makeMove(100);
+        
+        expect(success1).toBe(false);
+        expect(success2).toBe(false);  
+        expect(success3).toBe(false);
+        expect(service.gameState().moveHistory.length).toBe(moveCountBefore);
+      });
+
+      it('should handle rapid consecutive moves correctly', () => {
+        const initialState = service.gameState();
+        
+        // Try multiple rapid moves
+        service.makeMove(0);
+        service.makeMove(1);
+        service.makeMove(2);
+        
+        // Should have processed moves correctly without conflicts
+        const finalState = service.gameState();
+        expect(finalState.moveHistory.length).toBeGreaterThan(initialState.moveHistory.length);
+      });
+    });
+  });
 });

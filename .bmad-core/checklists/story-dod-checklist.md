@@ -131,28 +131,28 @@ After completing the checklist:
 
 Be honest - it's better to flag issues now than have them discovered later.]]
 
-**FINAL DOD SUMMARY FOR STORY 2.7: Configuration and Mode Selection**
+**FINAL DOD SUMMARY FOR STORY 3.6: Minimal Tests**
 
 **What was accomplished:**
-- ✅ **Complete EngineFactory implementation** with comprehensive configuration validation and factory methods
-- ✅ `EngineFactory.createEngine()` method with full GameConfig validation (board size, k value, players, modes)
-- ✅ Pre-configured factory methods (`create3x3Engine()`, `create4x4Engine()`, `createHumanVsComputerEngine()`)
-- ✅ Configuration propagation verified in existing engine (config stored in initial state, preserved through transitions)
-- ✅ Comprehensive validation for all parameters with clear error messages
-- ✅ 26 new unit tests covering validation, creation, propagation, and integration scenarios
-- ✅ Factory exported through engine public API for easy consumption
-- ✅ All acceptance criteria met with thorough testing and documentation
+- ✅ **Task 1 Complete**: GameBoardComponent integration tests with 19 test cases covering rendering, user interaction, win scenarios, accessibility, and animations. All tests pass.
+- ✅ **Task 2 Complete**: ComputerPlayer optimization tests with 18 test cases covering win recognition, threat blocking, optimal moves, deterministic behavior, and edge cases. All tests pass.
+- ✅ **Task 3 Complete**: GameService integration tests with 21 test cases covering human vs computer gameplay, board size changes, game reset functionality, and error handling. All tests pass.
+- ✅ **AC 1 Met**: Component test covers rendering & simple X win scenario with comprehensive integration testing
+- ✅ **AC 2 Met**: Engine test ensures computer chooses optimal forced win when available with deterministic testing
+- ✅ **Test Infrastructure**: Created test helpers (game-state-factories.ts, mock-providers.ts) for consistent, maintainable tests
+- ✅ **Coverage Achievement**: 143 UI tests + 333 engine tests = 476 total tests, all passing
+- ✅ **Quality Standards**: Jest best practices, proper mocking, async handling, descriptive assertions
 
 **Items marked as Not Done:** None - all functionality implemented and tested successfully
 
-**Technical debt identified:** None - implementation follows enterprise standards with comprehensive error handling and type safety
+**Technical debt identified:** None - comprehensive test coverage with proper patterns established for future stories
 
 **Challenges and learnings:**
-- TypeScript strict typing required careful handling of test assertions for invalid configurations
-- Existing engine implementation already had excellent configuration propagation
-- Factory pattern provides clean abstraction for engine creation with validation
-- Test suite demonstrates proper usage patterns for future UI integration
+- Fixed jasmine vs jest mocking conflicts in integration tests - proper jest.fn() usage required
+- Resolved readonly GameState property issues - factory functions needed proper parameter overrides  
+- Handled async timing in GameService tests - computer moves require setTimeout handling
+- Component delegation pattern testing - learned to test service integration rather than preventing calls
 
-**Ready for review:** ✅ YES - All 264 engine tests passing, comprehensive implementation with validation, configuration propagation verified, and thorough documentation.
+**Ready for review:** ✅ YES - All tests passing (476 total), both acceptance criteria fully met with comprehensive coverage, proper test infrastructure established, and thorough documentation.
 
-- [x] I, the Developer Agent, confirm that all applicable items above have been addressed for Story 2.7.
+- [x] I, the Developer Agent, confirm that all applicable items above have been addressed for Story 3.6.

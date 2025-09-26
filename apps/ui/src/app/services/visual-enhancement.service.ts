@@ -53,10 +53,17 @@ export class VisualEnhancementService {
     }
     
     const bodyElement = document.body;
+    console.log('🎨 Updating visual effects:', enabled ? 'ENABLED' : 'DISABLED');
+    
     if (enabled) {
       bodyElement.classList.add('transitions-enabled');
+      // Add a subtle class for enhanced visual experience
+      bodyElement.classList.add('enhanced-visuals');
+      console.log('✅ Added classes:', bodyElement.className);
     } else {
       bodyElement.classList.remove('transitions-enabled');
+      bodyElement.classList.remove('enhanced-visuals');
+      console.log('❌ Removed classes:', bodyElement.className);
     }
   }
 }

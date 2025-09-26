@@ -1,5 +1,5 @@
 import { Injectable, signal, computed, OnDestroy } from '@angular/core';
-import { EngineFactory, Engine } from '@libs/engine';
+import { EngineFactory, Engine, ComputerPlayer } from '@libs/engine';
 import { GameState, GameConfig, Move, GameMode, BoardSize } from '@libs/shared';
 
 @Injectable({
@@ -7,6 +7,7 @@ import { GameState, GameConfig, Move, GameMode, BoardSize } from '@libs/shared';
 })
 export class GameService implements OnDestroy {
   private engine!: Engine;
+  private computerPlayer = new ComputerPlayer();
   private _gameState = signal<GameState | null>(null);
   
   // Timer cleanup
@@ -116,13 +117,21 @@ export class GameService implements OnDestroy {
   private executeComputerMove(): void {
     if (!this.isComputerTurn()) return;
     
-    const legalMoves = this.legalMoves();
+    const currentState = this.gameState();
     
-    if (legalMoves.length > 0) {
-      // For now, use a simple strategy (first legal move)
-      // The engine will handle optimal play logic
-      const computerPosition = legalMoves[0];
-      this.makeComputerMove(computerPosition);
+    try {
+      // Use minimax algorithm for perfect play
+      const computerPosition = this.computerPlayer.calculateNextMove(currentState);
+      
+      if (computerPosition >= 0) {
+        this.makeComputerMove(computerPosition);
+      }
+    } catch {
+      // Fallback to first legal move if minimax fails
+      const legalMoves = this.legalMoves();
+      if (legalMoves.length > 0) {
+        this.makeComputerMove(legalMoves[0]);
+      }
     }
   }
   

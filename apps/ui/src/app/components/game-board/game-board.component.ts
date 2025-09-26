@@ -38,14 +38,19 @@ import { formatPlayerSymbol } from '@libs/shared';
   `,
   styles: [`
     .game-board {
-      @apply bg-white rounded-lg shadow-lg mx-auto;
+      @apply mx-auto;
       
       display: grid;
-      gap: 4px;
-      padding: 8px;
-      width: 320px;
-      height: 320px;
+      gap: 3px;
+      padding: 16px;
+      width: 340px;
+      height: 340px;
       box-sizing: border-box;
+      background: #1e293b; /* Dark slate background */
+      border-radius: 16px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 
+                  0 10px 10px -5px rgba(0, 0, 0, 0.04),
+                  0 0 0 1px rgba(255, 255, 255, 0.05);
       
       &.board-3x3 {
         grid-template-columns: repeat(3, 1fr);
@@ -59,50 +64,87 @@ import { formatPlayerSymbol } from '@libs/shared';
     }
 
     .cell {
-      @apply bg-gray-50 rounded-md text-2xl font-bold
-             hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500
-             transition-all duration-150 flex items-center justify-center;
+      @apply text-3xl font-bold
+             focus:outline-none transition-all duration-200 
+             flex items-center justify-center;
       
-      border: 1px solid #e5e7eb;
+      background: #f8fafc; /* Clean off-white */
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
       aspect-ratio: 1;
       width: 100%;
       height: 100%;
       box-sizing: border-box;
       cursor: pointer;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      position: relative;
       
-      /* Player-specific styling with distinct colors */
+      &:hover:not(:disabled) {
+        background: #f1f5f9;
+        border-color: #cbd5e1;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+      
+      &:focus {
+        ring: 2px;
+        ring-color: #0ea5e9;
+        ring-offset: 2px;
+        transform: scale(1.02);
+      }
+      
+      /* Player-specific styling with elevated colors */
       &.player-x {
-        color: #dc2626 !important; /* Red for X */
-        background-color: rgba(220, 38, 38, 0.1);
-        border-color: #dc2626;
+        color: #334155 !important; /* Deep charcoal for X */
+        background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+        border-color: #475569;
         font-weight: 900;
-        text-shadow: 0 0 2px rgba(220, 38, 38, 0.3);
+        text-shadow: 0 1px 2px rgba(51, 65, 85, 0.1);
       }
       
       &.player-o {  
-        color: #2563eb !important; /* Blue for O */
-        background-color: rgba(37, 99, 235, 0.1);
-        border-color: #2563eb;
+        color: #0891b2 !important; /* Modern teal for O */
+        background: linear-gradient(135deg, #ecfeff, #cffafe);
+        border-color: #06b6d4;
         font-weight: 900;
-        text-shadow: 0 0 2px rgba(37, 99, 235, 0.3);
+        text-shadow: 0 1px 2px rgba(8, 145, 178, 0.1);
       }
       
       &:disabled {
-        @apply cursor-not-allowed opacity-60;
+        cursor: not-allowed;
+        opacity: 0.7;
         
         &:hover {
-          @apply bg-gray-50;
+          background: #f8fafc !important;
+          transform: none !important;
+          box-shadow: none !important;
         }
       }
       
       &.occupied {
-        @apply bg-gray-100 cursor-not-allowed;
-        border-color: #d1d5db;
+        cursor: not-allowed;
+        
+        &:hover {
+          transform: none !important;
+        }
       }
       
       &.winning {
-        @apply bg-green-100 border-green-400;
-        animation: winningGlow 1s ease-in-out infinite alternate;
+        background: linear-gradient(135deg, #fef3c7, #fbbf24) !important;
+        border-color: #f59e0b !important;
+        box-shadow: 0 0 20px rgba(245, 158, 11, 0.4),
+                    0 0 40px rgba(245, 158, 11, 0.2) !important;
+        animation: winningGlow 1.5s ease-in-out infinite alternate,
+                   winningPulse 0.8s ease-in-out;
+        z-index: 10;
+        
+        &.player-x {
+          color: #92400e !important;
+        }
+        
+        &.player-o {
+          color: #92400e !important;
+        }
       }
       
       /* Minimal visual feedback when effects are OFF */
@@ -182,13 +224,29 @@ import { formatPlayerSymbol } from '@libs/shared';
     }
     
     @keyframes winningGlow {
-      0% { box-shadow: 0 0 5px rgba(34, 197, 94, 0.5); }
-      100% { box-shadow: 0 0 15px rgba(34, 197, 94, 0.8); }
+      0% {
+        box-shadow: 0 0 20px rgba(245, 158, 11, 0.3),
+                    0 0 40px rgba(245, 158, 11, 0.1);
+      }
+      100% {
+        box-shadow: 0 0 30px rgba(245, 158, 11, 0.5),
+                    0 0 60px rgba(245, 158, 11, 0.3);
+      }
     }
     
     @keyframes winningPulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.03); }
+      0% {
+        transform: scale(1);
+        opacity: 1;
+      }
+      50% {
+        transform: scale(1.05);
+        opacity: 0.95;
+      }
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
     }
     
     @keyframes growIn {
@@ -284,19 +342,33 @@ import { formatPlayerSymbol } from '@libs/shared';
 
     @media (max-width: 640px) {
       .game-board {
-        width: 280px;
-        height: 280px;
+        width: 300px;
+        height: 300px;
       }
     }
 
     @media (max-width: 480px) {
       .game-board {
-        width: 260px;
-        height: 260px;
+        width: 280px;
+        height: 280px;
+        padding: 12px;
       }
       
       .cell {
-        @apply text-xl;
+        font-size: 1.5rem;
+        border-radius: 8px;
+      }
+    }
+    
+    @media (max-width: 360px) {
+      .game-board {
+        width: 260px;
+        height: 260px;
+        padding: 8px;
+      }
+      
+      .cell {
+        font-size: 1.25rem;
       }
     }
   `],

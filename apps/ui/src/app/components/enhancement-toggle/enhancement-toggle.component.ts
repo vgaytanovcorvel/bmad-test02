@@ -29,44 +29,75 @@ import { VisualEnhancementService } from '../../services/visual-enhancement.serv
   `,
   styles: [`
     .enhancement-toggle {
-      @apply flex flex-col gap-1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
     }
 
     .toggle-label {
-      @apply flex items-center gap-2 cursor-pointer select-none;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      cursor: pointer;
+      user-select: none;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
     }
 
     .toggle-switch {
-      @apply relative inline-block w-12 h-6 bg-gray-300 rounded-full transition-colors duration-200;
-      @apply focus-within:ring-2 focus-within:ring-blue-500 focus-within:ring-offset-2;
+      position: relative;
+      display: inline-block;
+      width: 3rem;
+      height: 1.5rem;
+      background: #cbd5e1;
+      border-radius: 9999px;
+      transition: all 0.3s ease-in-out;
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+      
+      &:focus-within {
+        box-shadow: 0 0 0 2px #0ea5e9, inset 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
       
       &.enabled {
-        @apply bg-blue-500;
+        background: linear-gradient(135deg, #0891b2, #06b6d4);
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1),
+                    0 0 10px rgba(8, 145, 178, 0.3);
       }
     }
 
     .toggle-knob {
-      @apply absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform duration-200;
-      @apply shadow-sm;
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 1.25rem;
+      height: 1.25rem;
+      background: white;
+      border-radius: 9999px;
+      transition: all 0.3s ease-in-out;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
       
       .enabled & {
-        @apply transform translate-x-6;
+        transform: translateX(1.5rem);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
       }
     }
 
     .toggle-text {
-      @apply text-sm font-medium text-gray-700;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #475569;
+      letter-spacing: -0.025em;
     }
 
     .toggle-description {
-      @apply text-xs text-gray-500;
+      font-size: 0.75rem;
+      color: #64748b;
     }
 
     /* Ensure transitions are smooth even when visual effects are disabled */
     .toggle-switch,
     .toggle-knob {
-      transition-property: background-color, transform;
-      transition-duration: 200ms;
+      transition-property: background-color, transform, box-shadow;
+      transition-duration: 300ms;
       transition-timing-function: ease-in-out;
     }
   `],

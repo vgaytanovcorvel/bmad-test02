@@ -32,30 +32,63 @@ import { VisualEnhancementService } from '../../services/visual-enhancement.serv
   `,
   styles: [`
     .game-status {
-      @apply text-center py-4;
-      min-height: 60px;
+      text-align: center;
+      padding: 1.5rem 0;
+      min-height: 80px;
       display: flex;
       align-items: center;
       justify-content: center;
     }
 
     .status-message {
-      @apply text-xl font-bold px-4 py-2 rounded-lg;
-      min-width: 180px;
+      font-size: 1.5rem;
+      font-weight: 700;
+      padding: 0.75rem 1.5rem;
+      border-radius: 12px;
+      min-width: 220px;
       display: inline-block;
       text-align: center;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      transition: all 0.3s ease-in-out;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
     }
 
     .current-player {
-      @apply text-blue-600 bg-blue-50 border border-blue-200;
+      color: #0891b2;
+      background: linear-gradient(135deg, #ecfeff, #cffafe);
+      border: 2px solid #06b6d4;
+      text-shadow: 0 1px 2px rgba(8, 145, 178, 0.1);
     }
 
     .winner-message {
-      @apply text-green-700 bg-green-50 border border-green-200;
+      color: #f59e0b;
+      background: linear-gradient(135deg, #fefbeb, #fef3c7);
+      border: 2px solid #f59e0b;
+      text-shadow: 0 1px 2px rgba(245, 158, 11, 0.2);
+      animation: celebrateWin 0.6s ease-out;
+      box-shadow: 0 8px 25px rgba(245, 158, 11, 0.2);
     }
 
     .draw-message {
-      @apply text-yellow-700 bg-yellow-50 border border-yellow-200;
+      color: #64748b;
+      background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+      border: 2px solid #94a3b8;
+      text-shadow: 0 1px 2px rgba(100, 116, 139, 0.1);
+    }
+
+    @keyframes celebrateWin {
+      0% {
+        transform: scale(0.8);
+        opacity: 0;
+      }
+      50% {
+        transform: scale(1.1);
+        opacity: 1;
+      }
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
     }
   `],
   changeDetection: ChangeDetectionStrategy.OnPush

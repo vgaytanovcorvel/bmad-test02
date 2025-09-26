@@ -49,7 +49,7 @@ describe('GameBoardComponent', () => {
     fixture.detectChanges();
     
     const firstCell = fixture.debugElement.query(By.css('[data-testid="cell-0"]'));
-    expect(firstCell.nativeElement.textContent.trim()).toBe('❌');
+    expect(firstCell.nativeElement.textContent.trim()).toBe('X');
   });
 
   it('should disable all cells when game is terminal', () => {

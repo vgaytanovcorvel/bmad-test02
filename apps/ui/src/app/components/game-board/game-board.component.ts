@@ -69,19 +69,21 @@ import { formatPlayerSymbol } from '@libs/shared';
       box-sizing: border-box;
       cursor: pointer;
       
-      /* Player-specific styling with enhanced visibility */
+      /* Player-specific styling with distinct colors */
       &.player-x {
-        /* Enhance X emoji visibility with red background */
+        color: #dc2626 !important; /* Red for X */
         background-color: rgba(220, 38, 38, 0.1);
         border-color: #dc2626;
-        text-shadow: 0 0 3px rgba(220, 38, 38, 0.5);
+        font-weight: 900;
+        text-shadow: 0 0 2px rgba(220, 38, 38, 0.3);
       }
       
       &.player-o {  
-        /* Enhance O emoji visibility with blue background */
+        color: #2563eb !important; /* Blue for O */
         background-color: rgba(37, 99, 235, 0.1);
         border-color: #2563eb;
-        text-shadow: 0 0 3px rgba(37, 99, 235, 0.5);
+        font-weight: 900;
+        text-shadow: 0 0 2px rgba(37, 99, 235, 0.3);
       }
       
       &:disabled {

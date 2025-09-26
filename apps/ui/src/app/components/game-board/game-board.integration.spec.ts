@@ -24,7 +24,7 @@ describe('GameBoard Integration Tests', () => {
     
     // Human move: Click first cell
     fireEvent.click(screen.getByTestId('cell-0'));
-    expect(screen.getByTestId('cell-0').textContent).toContain('❌');
+    expect(screen.getByTestId('cell-0').textContent).toContain('X');
     
     // Verify game state updated correctly
     let boardState = gameService.gameState();
@@ -33,7 +33,7 @@ describe('GameBoard Integration Tests', () => {
     
     // Second human move
     fireEvent.click(screen.getByTestId('cell-1'));
-    expect(screen.getByTestId('cell-1').textContent).toContain('⭕');
+    expect(screen.getByTestId('cell-1').textContent).toContain('O');
     
     // Verify game state updated again
     boardState = gameService.gameState();
@@ -47,23 +47,23 @@ describe('GameBoard Integration Tests', () => {
     
     // First move - X
     fireEvent.click(screen.getByTestId('cell-0'));
-    expect(screen.getByTestId('cell-0').textContent).toContain('❌');
+    expect(screen.getByTestId('cell-0').textContent).toContain('X');
     
     // Second move - O
     fireEvent.click(screen.getByTestId('cell-3'));
-    expect(screen.getByTestId('cell-3').textContent).toContain('⭕');
+    expect(screen.getByTestId('cell-3').textContent).toContain('O');
     
     // Third move - X
     fireEvent.click(screen.getByTestId('cell-1'));
-    expect(screen.getByTestId('cell-1').textContent).toContain('❌');
+    expect(screen.getByTestId('cell-1').textContent).toContain('X');
     
     // Fourth move - O
     fireEvent.click(screen.getByTestId('cell-4'));
-    expect(screen.getByTestId('cell-4').textContent).toContain('⭕');
+    expect(screen.getByTestId('cell-4').textContent).toContain('O');
     
     // Fifth move - X winning move
     fireEvent.click(screen.getByTestId('cell-2'));
-    expect(screen.getByTestId('cell-2').textContent).toContain('❌');
+    expect(screen.getByTestId('cell-2').textContent).toContain('X');
     
     // Check if X won
     const boardState = gameService.gameState();
@@ -75,10 +75,10 @@ describe('GameBoard Integration Tests', () => {
   it('should handle game reset functionality', () => {
     // Make some moves
     fireEvent.click(screen.getByTestId('cell-0'));
-    expect(screen.getByTestId('cell-0').textContent).toContain('❌');
+    expect(screen.getByTestId('cell-0').textContent).toContain('X');
     
     fireEvent.click(screen.getByTestId('cell-1'));
-    expect(screen.getByTestId('cell-1').textContent).toContain('⭕');
+    expect(screen.getByTestId('cell-1').textContent).toContain('O');
     
     // Reset game using service
     gameService.resetGame();
@@ -102,7 +102,7 @@ describe('GameBoard Integration Tests', () => {
   it('should prevent moves on occupied cells', () => {
     // Make first move
     fireEvent.click(screen.getByTestId('cell-4'));
-    expect(screen.getByTestId('cell-4').textContent).toContain('❌');
+    expect(screen.getByTestId('cell-4').textContent).toContain('X');
     
     // Try to click same cell again
     const initialMoveCount = gameService.gameState().moveHistory.length;

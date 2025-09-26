@@ -161,7 +161,7 @@ describe('GameBoardComponent Integration Tests', () => {
       const firstCell = fixture.debugElement.nativeElement.querySelector('[data-testid="cell-0"]');
       
       // Verify cell shows X symbol
-      expect(firstCell.textContent.trim()).toBe('❌');
+      expect(firstCell.textContent.trim()).toBe('X');
       expect(firstCell).toHaveClass('occupied');
     });
   });
@@ -222,7 +222,7 @@ describe('GameBoardComponent Integration Tests', () => {
       winningPositions.forEach(position => {
         const cell = fixture.debugElement.nativeElement.querySelector(`[data-testid="cell-${position}"]`);
         expect(cell).toHaveClass('winning');
-        expect(cell.textContent.trim()).toBe('❌');
+        expect(cell.textContent.trim()).toBe('X');
       });
 
       // Verify non-winning cells are not highlighted
@@ -249,13 +249,13 @@ describe('GameBoardComponent Integration Tests', () => {
       // Verify X symbols in winning positions
       [0, 1, 2].forEach(position => {
         const cell = fixture.debugElement.nativeElement.querySelector(`[data-testid="cell-${position}"]`);
-        expect(cell.textContent.trim()).toBe('❌');
+        expect(cell.textContent.trim()).toBe('X');
       });
 
       // Verify O symbols in occupied non-winning positions
       [3, 4].forEach(position => {
         const cell = fixture.debugElement.nativeElement.querySelector(`[data-testid="cell-${position}"]`);
-        expect(cell.textContent.trim()).toBe('⭕');
+        expect(cell.textContent.trim()).toBe('O');
       });
 
       // Verify empty cells remain empty

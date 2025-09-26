@@ -22,11 +22,12 @@ export function isValidPosition(position: number): boolean {
 /**
  * Formats a player value for display.
  * @param player - Player value or null for empty cell
- * @returns Emoji representation of the player or empty string
+ * @returns Text representation of the player with CSS color support
  */
 export function formatPlayerSymbol(player: Player | null): string {
   if (player === null) return '';
-  return player === 'X' ? '❌' : '⭕';
+  // Use plain text symbols so CSS can apply distinct colors
+  return player === 'X' ? 'X' : 'O';
 }
 
 /**

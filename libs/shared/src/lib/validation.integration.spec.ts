@@ -106,9 +106,9 @@ describe('Shared Library Integration Tests', () => {
         const formatted = formatPlayerSymbol(cell);
         
         if (cell === 'X') {
-          expect(formatted).toBe('❌');
+          expect(formatted).toBe('X');
         } else if (cell === 'O') {
-          expect(formatted).toBe('⭕');
+          expect(formatted).toBe('O');
         } else {
           expect(formatted).toBe('');
         }
@@ -135,8 +135,8 @@ describe('Shared Library Integration Tests', () => {
       expect(isValidPosition(5) && isCellEmpty(board, 5)).toBe(true);
       
       // Formatting should work for populated cells
-      expect(formatPlayerSymbol(board[0])).toBe('❌');
-      expect(formatPlayerSymbol(board[4])).toBe('⭕');
+      expect(formatPlayerSymbol(board[0])).toBe('X');
+      expect(formatPlayerSymbol(board[4])).toBe('O');
       expect(formatPlayerSymbol(board[1])).toBe('');
     });
   });

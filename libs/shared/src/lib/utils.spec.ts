@@ -28,12 +28,12 @@ describe('Utils', () => {
   });
 
   describe('formatPlayerSymbol', () => {
-    it('should format player X as ❌', () => {
-      expect(formatPlayerSymbol('X')).toBe('❌');
+    it('should format player X as X', () => {
+      expect(formatPlayerSymbol('X')).toBe('X');
     });
 
-    it('should format player O as ⭕', () => {
-      expect(formatPlayerSymbol('O')).toBe('⭕');
+    it('should format player O as O', () => {
+      expect(formatPlayerSymbol('O')).toBe('O');
     });
 
     it('should return empty string for null', () => {

@@ -99,12 +99,123 @@ The development server runs with:
 
 ## 🎮 Game Features
 
-- **Interactive Tic-Tac-Toe Board**: Clean, responsive game interface
-- **AI Computer Player**: Intelligent opponent with configurable difficulty
-- **Real-time Game State**: Reactive updates using Angular Signals
-- **Win Detection**: Automatic game end and winner announcement  
-- **Responsive Design**: Works on desktop, tablet, and mobile devices
-- **Accessibility**: Full keyboard navigation and screen reader support
+### Interactive Tic-Tac-Toe Gameplay
+
+**Game Board & Interaction:**
+- **Clean Responsive Interface**: Centered game board that adapts to screen sizes while maintaining square cells
+- **Real-time Updates**: Game state changes instantly using Angular Signals for smooth, reactive gameplay
+- **Click to Play**: Simply click any empty cell to place your X or O marker
+- **Visual Feedback**: Cells highlight on hover to show available moves, current player indicator displays whose turn it is
+
+**AI Computer Player:**
+- **Intelligent Opponent**: Smart AI that makes strategic, optimal moves for challenging gameplay
+- **Two Game Modes**: Switch between "Human vs Human" (two players) and "Human vs Computer" (play against AI)
+- **Strategic Decision Making**: Computer player analyzes board position and makes intelligent moves to win or block
+
+**Game State Management:**
+- **Win Detection**: Automatic detection of winning combinations with visual highlighting of winning line
+- **Winner Announcement**: Clear display of game results when someone wins or game ends in draw
+- **Draw Scenarios**: Intelligent detection when board is full with no winner
+- **Game End Behavior**: Board automatically disables further moves after win/draw is detected
+
+**Responsive Design Features:**
+- **Multi-Device Support**: Fully functional on desktop computers, tablets, and mobile phones
+- **Adaptive Layout**: Board and controls automatically adjust to screen size while maintaining usability
+- **Touch-Friendly**: Mobile-optimized touch targets for easy gameplay on phones and tablets
+- **Consistent Experience**: Same great gameplay across all device types
+
+**Accessibility Implementation:**
+- **Keyboard Navigation**: Full keyboard support - use Tab/Shift+Tab to navigate, Space/Enter to select cells
+- **Screen Reader Support**: Semantic markup and ARIA attributes communicate game state to assistive technologies  
+- **Game State Communication**: Current player, cell contents, and game results clearly announced to screen readers
+- **High Contrast**: Visual indicators work well with high contrast and reduced motion preferences
+
+### User Controls
+
+**Board Interaction:**
+- **Mouse/Touch**: Click or tap any empty cell to place your move (X or O)
+- **Keyboard Navigation**: 
+  - Tab/Shift+Tab to move between cells and controls
+  - Space or Enter to select highlighted cell
+  - Arrow keys for grid navigation (if supported by browser)
+
+**Game Mode Controls:**
+- **Mode Toggle**: Switch between "Human vs Human" and "Human vs Computer" modes
+- **Mode Persistence**: Your selected mode stays active across multiple games
+- **Turn Alternation**: In Human vs Human mode, turns automatically alternate between X and O players
+- **Computer Player**: In Human vs Computer mode, AI automatically makes moves after your turn
+
+**Board Size & Reset Controls:**
+- **Board Size Selection**: Choose different board dimensions (3x3 standard, with potential for larger boards)
+- **New Game Button**: Reset the board and start fresh while keeping your preferred mode and size
+- **Auto-Reset**: Changing board size automatically starts a new game
+- **State Preservation**: Mode and size settings remember your preferences between games
+
+**Game Status Display:**
+- **Current Player Indicator**: Always shows whose turn it is (X or O player)
+- **Move History**: Visual indication of move sequence and game progression
+- **Win/Draw Announcement**: Clear messaging when game ends with winner or draw result
+- **Game State**: Real-time status updates throughout gameplay
+
+### Gameplay Instructions
+
+**Getting Started:**
+1. **Choose Your Mode**: Select "Human vs Human" for two-player local play, or "Human vs Computer" to play against AI
+2. **Select Board Size**: Pick your preferred board dimensions (default is classic 3x3)
+3. **Start Playing**: Click any cell to place the first move (typically X goes first)
+
+**Human vs Human Mode:**
+- Player 1 places X markers, Player 2 places O markers
+- Players alternate turns by clicking empty cells
+- Game continues until someone gets three in a row or board fills (draw)
+- Use "New Game" to reset and play again with same mode
+
+**Human vs Computer Mode:**
+- You play as X, computer plays as O (or vice versa based on settings)
+- Make your move by clicking an empty cell
+- Computer automatically makes its move after yours
+- AI will try to win and block your winning moves
+- Challenge yourself against the intelligent computer opponent
+
+**Winning the Game:**
+- **Objective**: Get three of your markers (X or O) in a row
+- **Winning Lines**: Horizontal, vertical, or diagonal lines count as wins
+- **Win Highlighting**: Winning line gets highlighted when game ends
+- **Game End**: No more moves possible after someone wins
+
+**Draw Games:**
+- **Full Board**: If all 9 cells fill with no winner, game ends in draw
+- **Draw Detection**: Automatic detection when no more winning moves possible
+- **Draw Display**: Clear messaging that game ended in tie
+- **Reset Option**: Start new game to play again
+
+### Optional Visual Enhancements
+
+**CSS Animation Features (Optional):**
+- **Subtle Transitions**: Cell hover effects and move placement animations (≤200ms duration)
+- **Performance Optimized**: Pure CSS animations for smooth performance without JavaScript overhead
+- **Customizable**: Visual enhancements can be easily disabled by removing CSS classes
+- **Lightweight**: No external animation libraries - uses standard CSS properties only
+
+**Animation Customization:**
+```css
+/* To disable hover animations, comment out or remove: */
+.game-cell:hover {
+  /* transform: scale(1.02); */
+  /* transition: transform 0.15s ease-in-out; */
+}
+
+/* To enhance move placement effects: */
+.game-cell.new-move {
+  /* animation: placeMove 0.2s ease-out; */
+}
+```
+
+**3D Features (Future Scope):**
+- **Current Version**: No 3D libraries included in v1.3 for optimal load times
+- **Future Consideration**: 3D board effects and enhanced animations planned for future releases
+- **Simplicity Focus**: Current implementation prioritizes compatibility and performance over complex effects
+- **CSS-Only Approach**: All visual enhancements use standard web technologies for broad browser support
 
 ## 🧪 Testing
 

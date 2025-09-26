@@ -41,12 +41,12 @@ import { formatPlayerSymbol } from '@libs/shared';
       @apply mx-auto;
       
       display: grid;
-      gap: 3px;
+      gap: 1px;
       padding: 16px;
       width: 340px;
       height: 340px;
       box-sizing: border-box;
-      background: #1e293b; /* Dark slate background */
+      background: #475569; /* Use a lighter slate for grid lines */
       border-radius: 16px;
       box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 
                   0 10px 10px -5px rgba(0, 0, 0, 0.04),
@@ -68,8 +68,8 @@ import { formatPlayerSymbol } from '@libs/shared';
              focus:outline-none transition-all duration-200 
              flex items-center justify-center;
       
-      background: #f8fafc; /* Clean off-white */
-      border: 2px solid #e2e8f0;
+      background: #334155; /* Lighter slate for unplayed cells */
+      border: none;
       border-radius: 12px;
       aspect-ratio: 1;
       width: 100%;
@@ -80,34 +80,34 @@ import { formatPlayerSymbol } from '@libs/shared';
       position: relative;
       
       &:hover:not(:disabled) {
-        background: #f1f5f9;
-        border-color: #cbd5e1;
+        background: #475569;
+        border-color: #94a3b8;
         transform: translateY(-1px);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
       }
       
       &:focus {
-        ring: 2px;
-        ring-color: #0ea5e9;
-        ring-offset: 2px;
+        outline: none;
+        box-shadow: 0 0 0 2px #0ea5e9;
+        border-color: #0ea5e9;
         transform: scale(1.02);
       }
       
       /* Player-specific styling with elevated colors */
       &.player-x {
-        color: #334155 !important; /* Deep charcoal for X */
-        background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
-        border-color: #475569;
+        color: #22d3ee !important; /* Vibrant Cyan for X */
         font-weight: 900;
-        text-shadow: 0 1px 2px rgba(51, 65, 85, 0.1);
+        text-shadow: 0 1px 3px rgba(34, 211, 238, 0.2);
       }
       
       &.player-o {  
-        color: #0891b2 !important; /* Modern teal for O */
-        background: linear-gradient(135deg, #ecfeff, #cffafe);
-        border-color: #06b6d4;
+        color: #f9a8d4 !important; /* Brighter Pink for O */
         font-weight: 900;
-        text-shadow: 0 1px 2px rgba(8, 145, 178, 0.1);
+        text-shadow: 0 1px 3px rgba(249, 168, 212, 0.2);
+      }
+      
+      &.occupied {
+        background: #1e293b; /* Match board background for occupied cells */
       }
       
       &:disabled {
@@ -130,20 +130,20 @@ import { formatPlayerSymbol } from '@libs/shared';
       }
       
       &.winning {
-        background: linear-gradient(135deg, #fef3c7, #fbbf24) !important;
+        background: #1e293b !important;
         border-color: #f59e0b !important;
-        box-shadow: 0 0 20px rgba(245, 158, 11, 0.4),
-                    0 0 40px rgba(245, 158, 11, 0.2) !important;
         animation: winningGlow 1.5s ease-in-out infinite alternate,
                    winningPulse 0.8s ease-in-out;
         z-index: 10;
         
         &.player-x {
-          color: #92400e !important;
+          color: #fef3c7 !important;
+          text-shadow: 0 0 15px rgba(254, 243, 199, 0.8);
         }
         
         &.player-o {
-          color: #92400e !important;
+          color: #fef3c7 !important;
+          text-shadow: 0 0 15px rgba(254, 243, 199, 0.8);
         }
       }
       

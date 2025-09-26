@@ -31,26 +31,27 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 2rem 1rem;
-  background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+  justify-content: flex-start; /* Align to top */
+  padding: 4rem 1rem 2rem; /* More top padding */
+  background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.05);
 }
 
 .game-header {
   text-align: center;
-  margin-bottom: 3rem;
+  margin-bottom: 2.5rem;
   
   h1 {
-    font-size: 3rem;
-    font-weight: 800;
+    font-size: 3.5rem;
+    font-weight: 900;
     background: linear-gradient(135deg, #1e293b, #475569);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
     letter-spacing: -0.05em;
     margin: 0;
-    text-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    text-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
   }
 }
 
@@ -115,6 +116,17 @@
   .board-placeholder {
     width: var(--game-board-size);
     height: var(--game-board-size);
+  }
+}
+
+.game-controls-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  
+  app-enhancement-toggle {
+    margin-top: 2.5rem; /* Add significant vertical space between controls and toggle */
   }
 }
 

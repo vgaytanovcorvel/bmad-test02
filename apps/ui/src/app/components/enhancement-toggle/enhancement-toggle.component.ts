@@ -82,7 +82,7 @@ import { VisualEnhancementService } from '../../services/visual-enhancement.serv
     }
 
     .toggle-text {
-      font-size: 0.875rem;
+      font-size: 1rem;
       font-weight: 600;
       color: #475569;
       letter-spacing: -0.025em;

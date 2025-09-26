@@ -8,6 +8,7 @@ import { VisualEnhancementService } from './services/visual-enhancement.service'
   selector: 'app-root',
   templateUrl: './app.html',
   styleUrl: './app.css',
+  standalone: true,
 })
 export class App implements OnInit {
   protected title = 'tic-tac-toe-showcase';

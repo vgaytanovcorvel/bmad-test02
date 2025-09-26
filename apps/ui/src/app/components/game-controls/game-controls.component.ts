@@ -10,34 +10,36 @@ import { GameMode, BoardSize } from '@libs/shared';
   imports: [CommonModule, FormsModule],
   template: `
     <div class="game-controls" data-testid="game-controls">
-      <div class="control-group">
-        <label for="game-mode" class="control-label">Game Mode:</label>
-        <select 
-          id="game-mode"
-          class="control-select"
-          [value]="currentMode()"
-          (change)="onModeChange($event)"
-          data-testid="mode-selector"
-          aria-label="Select game mode"
-        >
-          <option value="human-vs-human">Human vs Human</option>
-          <option value="human-vs-computer">Human vs Computer</option>
-        </select>
-      </div>
-      
-      <div class="control-group">
-        <label for="board-size" class="control-label">Board Size:</label>
-        <select 
-          id="board-size"
-          class="control-select"
-          [value]="currentBoardSize()"
-          (change)="onBoardSizeChange($event)"
-          data-testid="size-selector"
-          aria-label="Select board size"
-        >
-          <option value="3">3×3</option>
-          <option value="4">4×4</option>
-        </select>
+      <div class="selectors-container">
+        <div class="control-group">
+          <label for="game-mode" class="control-label">Game Mode:</label>
+          <select 
+            id="game-mode"
+            class="control-select"
+            [value]="currentMode()"
+            (change)="onModeChange($event)"
+            data-testid="mode-selector"
+            aria-label="Select game mode"
+          >
+            <option value="human-vs-human">Human vs Human</option>
+            <option value="human-vs-computer">Human vs Computer</option>
+          </select>
+        </div>
+        
+        <div class="control-group">
+          <label for="board-size" class="control-label">Board Size:</label>
+          <select 
+            id="board-size"
+            class="control-select"
+            [value]="currentBoardSize()"
+            (change)="onBoardSizeChange($event)"
+            data-testid="size-selector"
+            aria-label="Select board size"
+          >
+            <option value="3">3×3</option>
+            <option value="4">4×4</option>
+          </select>
+        </div>
       </div>
       
       <button 

@@ -38,58 +38,62 @@ import { RouterModule } from '@angular/router';
   `,
   styles: [`
     .main-nav {
-      background-color: white;
-      border-bottom: 1px solid #e5e7eb;
-      padding: 1rem 0;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      background: #0f172a; /* Near-black background */
+      padding: 1.25rem 0; /* Increased vertical padding */
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      border-bottom: 1px solid #334155;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
     }
 
     .nav-container {
-      max-width: 64rem;
       margin: 0 auto;
-      padding: 0 1rem;
+      padding: 0 1.5rem;
     }
 
     .nav-links {
       display: flex;
       justify-content: center;
-      gap: 2rem;
+      gap: 2.5rem;
     }
 
     .nav-link {
       display: inline-block;
       padding: 0.5rem 1rem;
       text-decoration: none;
-      color: #6b7280;
-      font-weight: 500;
-      border-radius: 0.375rem;
-      transition: all 0.15s ease-in-out;
+      color: #cbd5e1;
+      font-weight: 600;
+      font-size: 1rem;
+      border-radius: 8px;
+      transition: all 0.2s ease-in-out;
+      position: relative;
+      border: 2px solid transparent;
       
       &:hover {
-        color: #3b82f6;
-        background-color: #f3f4f6;
+        color: white;
+        background: #1e293b;
       }
       
       &.active {
-        color: #3b82f6;
-        background-color: #dbeafe;
-        font-weight: 600;
+        color: white;
+        font-weight: 700;
+        border-image: linear-gradient(to right, #0ea5e9, #0891b2) 1;
+        background: none;
       }
       
       &:focus {
         outline: none;
-        box-shadow: 0 0 0 2px #3b82f6, 0 0 0 4px rgba(59, 130, 246, 0.1);
+        box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.5);
       }
     }
 
     @media (max-width: 640px) {
       .nav-links {
-        gap: 1rem;
+        gap: 1.5rem;
       }
       
       .nav-link {
-        padding: 0.375rem 0.75rem;
-        font-size: 0.875rem;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.9rem;
       }
     }
   `],

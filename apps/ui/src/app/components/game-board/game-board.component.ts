@@ -14,6 +14,7 @@ import { formatPlayerSymbol } from '@libs/shared';
       [class.board-3x3]="boardSize() === 3"
       [class.board-4x4]="boardSize() === 4"
       [class.size-changing]="isBoardResizing$()"
+      [class.effects-enabled]="enhancementsEnabled()"
       [attr.data-testid]="'game-board'"
     >
       @for (cell of boardCells(); track $index) {
@@ -104,7 +105,24 @@ import { formatPlayerSymbol } from '@libs/shared';
         animation: winningGlow 1s ease-in-out infinite alternate;
       }
       
-      /* New move animation - growing from small to full size - ALWAYS VISIBLE */
+      /* Minimal visual feedback when effects are OFF */
+      &.new-move {
+        animation: none;
+        /* Just a subtle highlight for accessibility */
+        background-color: rgba(59, 130, 246, 0.05);
+        transition: background-color 0.1s ease-out;
+      }
+      
+      /* Minimal hover effects when enhancements are OFF */
+      &:not(:disabled):not(.occupied):hover {
+        background-color: rgba(59, 130, 246, 0.05);
+        transition: background-color 0.1s ease-out;
+      }
+    }
+    
+    /* Visual enhancement animations - ONLY when enhancements are enabled */
+    .effects-enabled .cell {
+      /* Full dramatic animations when effects are ON */
       &.new-move {
         animation: growIn 1s ease-out !important;
         
@@ -118,7 +136,7 @@ import { formatPlayerSymbol } from '@libs/shared';
         }
       }
 
-      /* Basic hover animation - always active */
+      /* Enhanced hover effects when effects are ON */
       &:not(:disabled):not(.occupied):hover {
         transform: scale(1.1) !important;
         box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3) !important;
@@ -127,22 +145,8 @@ import { formatPlayerSymbol } from '@libs/shared';
         transition: all 0.4s ease-out !important;
       }
 
-      /* Always animate transitions */
-      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    }
-    
-    /* Visual enhancement animations - enhanced when enhancements are enabled */
-    :global(body.transitions-enabled) .cell {
-      /* Enhanced hover effects */
-      &:not(:disabled):not(.occupied):hover {
-        transform: scale(1.05);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        background-color: rgba(59, 130, 246, 0.1);
-        border-color: #3b82f6;
-      }
-      
       /* Smooth transitions for all interactive states */
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
       
       /* Enhanced winning animation with scaling */
       &.winning {
@@ -161,12 +165,19 @@ import { formatPlayerSymbol } from '@libs/shared';
       }
     }
     
-    /* Board size transition */
-    :global(body.transitions-enabled) .game-board {
-      transition: all 0.3s ease-in-out;
+    /* Board size transition - ONLY when enhancements are enabled */
+    .effects-enabled {
+      transition: all 0.4s ease-in-out;
       
       &.size-changing {
-        animation: boardResize 0.3s ease-in-out;
+        animation: boardResize 1s ease-in-out;
+      }
+    }
+
+    /* No board animations when effects are OFF */
+    .game-board {
+      &.size-changing {
+        animation: none;
       }
     }
     
@@ -320,8 +331,8 @@ export class GameBoardComponent implements OnDestroy {
   handleCellClick(position: number): void {
     const success = this.gameService.makeMove(position);
     
-    // Always trigger animation on successful moves - more dramatic when enhancements are on
-    if (success) {
+    // Only trigger animation when visual enhancements are enabled
+    if (success && this.enhancementService.enhancementsEnabled()) {
       console.log('🎯 Triggering move animation for position:', position);
       this.triggerMoveAnimation(position);
     }
@@ -384,8 +395,10 @@ export class GameBoardComponent implements OnDestroy {
     }
   }
   
-  private enhancementsEnabled(): boolean {
-    return this.enhancementService.enhancementsEnabled();
+  protected enhancementsEnabled(): boolean {
+    const enabled = this.enhancementService.enhancementsEnabled();
+    console.log('🎮 Game board checking enhancements:', enabled);
+    return enabled;
   }
   
   ngOnDestroy(): void {

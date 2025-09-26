@@ -19,7 +19,9 @@ export class VisualEnhancementService {
   }
   
   initializeEnhancements(): void {
-    this.updateDocumentClass(this._enhancementsEnabled());
+    const enabled = this._enhancementsEnabled();
+    console.log('🚀 Initializing visual enhancements:', enabled);
+    this.updateDocumentClass(enabled);
   }
   
   private loadEnhancementPreference(): boolean {

@@ -22,9 +22,12 @@ import { formatPlayerSymbol } from '@libs/shared';
           [class.occupied]="cell !== null"
           [class.winning]="isWinningCell($index)"
           [class.new-move]="isNewMovePosition($index)"
+          [class.player-x]="cell === 'X'"
+          [class.player-o]="cell === 'O'"
           [disabled]="isTerminal() || cell !== null"
           (click)="handleCellClick($index)"
           [attr.data-testid]="'cell-' + $index"
+          [attr.data-player]="cell"
           [attr.aria-label]="getCellAriaLabel($index)"
         >
           {{ formatPlayerSymbol(cell) }}
@@ -34,38 +37,92 @@ import { formatPlayerSymbol } from '@libs/shared';
   `,
   styles: [`
     .game-board {
-      @apply grid gap-2 p-4 bg-white rounded-lg shadow-lg mx-auto;
+      @apply bg-white rounded-lg shadow-lg mx-auto;
       
-      width: var(--game-board-size);
-      height: var(--game-board-size);
+      display: grid;
+      gap: 4px;
+      padding: 8px;
+      width: 320px;
+      height: 320px;
+      box-sizing: border-box;
       
       &.board-3x3 {
-        @apply grid-cols-3;
+        grid-template-columns: repeat(3, 1fr);
+        grid-template-rows: repeat(3, 1fr);
       }
       
       &.board-4x4 {
-        @apply grid-cols-4;
+        grid-template-columns: repeat(4, 1fr);
+        grid-template-rows: repeat(4, 1fr);
       }
     }
 
     .cell {
-      @apply bg-gray-100 border-2 border-gray-300 rounded-md text-3xl font-bold
-             hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500
-             transition-colors duration-150 flex items-center justify-center;
+      @apply bg-gray-50 rounded-md text-2xl font-bold
+             hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500
+             transition-all duration-150 flex items-center justify-center;
       
+      border: 1px solid #e5e7eb;
       aspect-ratio: 1;
-      min-height: var(--cell-size);
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+      cursor: pointer;
+      
+      /* Player-specific styling with enhanced visibility */
+      &.player-x {
+        /* Enhance X emoji visibility with red background */
+        background-color: rgba(220, 38, 38, 0.1);
+        border-color: #dc2626;
+        text-shadow: 0 0 3px rgba(220, 38, 38, 0.5);
+      }
+      
+      &.player-o {  
+        /* Enhance O emoji visibility with blue background */
+        background-color: rgba(37, 99, 235, 0.1);
+        border-color: #2563eb;
+        text-shadow: 0 0 3px rgba(37, 99, 235, 0.5);
+      }
       
       &:disabled {
         @apply cursor-not-allowed opacity-60;
+        
+        &:hover {
+          @apply bg-gray-50;
+        }
       }
       
       &.occupied {
-        @apply bg-gray-200 cursor-not-allowed;
+        @apply bg-gray-100 cursor-not-allowed;
+        border-color: #d1d5db;
       }
       
       &.winning {
-        @apply bg-green-200 border-green-400 text-green-800;
+        @apply bg-green-100 border-green-400;
+        animation: winningGlow 1s ease-in-out infinite alternate;
+      }
+    }
+    
+    @keyframes winningGlow {
+      0% { box-shadow: 0 0 5px rgba(34, 197, 94, 0.5); }
+      100% { box-shadow: 0 0 15px rgba(34, 197, 94, 0.8); }
+    }
+
+    @media (max-width: 640px) {
+      .game-board {
+        width: 280px;
+        height: 280px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .game-board {
+        width: 260px;
+        height: 260px;
+      }
+      
+      .cell {
+        @apply text-xl;
       }
     }
   `],

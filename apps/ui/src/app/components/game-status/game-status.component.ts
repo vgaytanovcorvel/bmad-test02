@@ -33,10 +33,17 @@ import { VisualEnhancementService } from '../../services/visual-enhancement.serv
   styles: [`
     .game-status {
       @apply text-center py-4;
+      min-height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .status-message {
       @apply text-xl font-bold px-4 py-2 rounded-lg;
+      min-width: 180px;
+      display: inline-block;
+      text-align: center;
     }
 
     .current-player {

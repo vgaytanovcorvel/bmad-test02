@@ -2,11 +2,72 @@ import { GameState, Player, Cell } from '@libs/shared';
 import { isCellEmpty } from '@libs/shared';
 
 export class ComputerPlayer {
-  private readonly WINNING_COMBINATIONS = [
-    [0, 1, 2], [3, 4, 5], [6, 7, 8], // Rows
-    [0, 3, 6], [1, 4, 7], [2, 5, 8], // Columns
-    [0, 4, 8], [2, 4, 6] // Diagonals
-  ];
+  /**
+   * Check if there's a win starting from a given position in a specific direction.
+   * Much more efficient than precalculating all combinations.
+   */
+  private checkLineWin(
+    board: readonly Cell[], 
+    startPos: number, 
+    deltaRow: number, 
+    deltaCol: number, 
+    boardSize: number, 
+    kInRow: number
+  ): Player | null {
+    const startRow = Math.floor(startPos / boardSize);
+    const startCol = startPos % boardSize;
+    
+    // Check if we can fit k-in-a-row from this position in this direction
+    const endRow = startRow + (kInRow - 1) * deltaRow;
+    const endCol = startCol + (kInRow - 1) * deltaCol;
+    
+    if (endRow < 0 || endRow >= boardSize || endCol < 0 || endCol >= boardSize) {
+      return null; // Line goes out of bounds
+    }
+    
+    // Check if all positions in the line have the same non-null symbol
+    const firstSymbol = board[startPos];
+    if (!firstSymbol) return null;
+    
+    for (let i = 1; i < kInRow; i++) {
+      const row = startRow + i * deltaRow;
+      const col = startCol + i * deltaCol;
+      const pos = row * boardSize + col;
+      
+      if (board[pos] !== firstSymbol) {
+        return null;
+      }
+    }
+    
+    return firstSymbol as Player;
+  }
+
+  /**
+   * Check for any winning line on the board.
+   * Checks all four directions: horizontal, vertical, diagonal, anti-diagonal.
+   */
+  private findWinner(board: readonly Cell[], boardSize: number, kInRow: number): Player | null {
+    // Direction vectors: [deltaRow, deltaCol]
+    const directions = [
+      [0, 1],   // Horizontal (right)
+      [1, 0],   // Vertical (down)  
+      [1, 1],   // Diagonal (down-right)
+      [1, -1]   // Anti-diagonal (down-left)
+    ];
+    
+    for (let pos = 0; pos < board.length; pos++) {
+      if (!board[pos]) continue; // Skip empty cells
+      
+      for (const [deltaRow, deltaCol] of directions) {
+        const winner = this.checkLineWin(board, pos, deltaRow, deltaCol, boardSize, kInRow);
+        if (winner) {
+          return winner;
+        }
+      }
+    }
+    
+    return null;
+  }
 
   /**
    * Calculate the best move using minimax exhaustive search algorithm.
@@ -26,6 +87,9 @@ export class ComputerPlayer {
     let bestMove = availableMoves[0];
     let bestScore = -Infinity;
     
+    // Adjust max depth based on board size for performance
+    const maxDepth = state.config.boardSize <= 3 ? 15 : Math.max(4, 16 - availableMoves.length);
+    
     // Try each available move and evaluate using minimax
     for (const move of availableMoves) {
       const newBoard = this.makeMove(state.board, move, state.currentPlayer);
@@ -33,7 +97,12 @@ export class ComputerPlayer {
         newBoard, 
         this.getOpponent(state.currentPlayer), 
         false, 
-        0
+        0,
+        state.config.boardSize,
+        state.config.kInRow,
+        -Infinity,
+        Infinity,
+        maxDepth // Dynamic depth based on board size
       );
       
       if (score > bestScore) {
@@ -54,10 +123,18 @@ export class ComputerPlayer {
     currentPlayer: Player, 
     isMaximizing: boolean, 
     depth: number,
+    boardSize: number,
+    kInRow: number,
     alpha = -Infinity,
-    beta = Infinity
+    beta = Infinity,
+    maxDepth = 15
   ): number {
-    const result = this.evaluateBoard(board);
+    // Prevent infinite recursion
+    if (depth >= maxDepth) {
+      return 0; // Return neutral score at max depth
+    }
+    
+    const result = this.evaluateBoard(board, boardSize, kInRow);
     
     // Terminal states
     if (result !== null) {
@@ -78,12 +155,17 @@ export class ComputerPlayer {
           this.getOpponent(currentPlayer), 
           false, 
           depth + 1,
+          boardSize,
+          kInRow,
           alpha,
-          beta
+          beta,
+          maxDepth
         );
         maxScore = Math.max(maxScore, score);
         alpha = Math.max(alpha, score);
-        if (beta <= alpha) break; // Alpha-beta pruning
+        if (beta <= alpha) {
+          break; // Alpha-beta pruning
+        }
       }
       return maxScore;
     } else {
@@ -95,12 +177,17 @@ export class ComputerPlayer {
           this.getOpponent(currentPlayer), 
           true, 
           depth + 1,
+          boardSize,
+          kInRow,
           alpha,
-          beta
+          beta,
+          maxDepth
         );
         minScore = Math.min(minScore, score);
         beta = Math.min(beta, score);
-        if (beta <= alpha) break; // Alpha-beta pruning
+        if (beta <= alpha) {
+          break; // Alpha-beta pruning
+        }
       }
       return minScore;
     }
@@ -110,14 +197,10 @@ export class ComputerPlayer {
    * Evaluate the current board state.
    * Returns the winner ('X' or 'O'), 'draw', or null if game is ongoing.
    */
-  private evaluateBoard(board: readonly Cell[]): Player | 'draw' | null {
-    // Check for wins
-    for (const combination of this.WINNING_COMBINATIONS) {
-      const [a, b, c] = combination;
-      if (board[a] && board[a] === board[b] && board[b] === board[c]) {
-        return board[a] as Player;
-      }
-    }
+  private evaluateBoard(board: readonly Cell[], boardSize: number, kInRow: number): Player | 'draw' | null {
+    // Check for winner using efficient line checking
+    const winner = this.findWinner(board, boardSize, kInRow);
+    if (winner) return winner;
     
     // Check for draw (board full with no winner)
     if (board.every(cell => cell !== null)) {
@@ -158,17 +241,18 @@ export class ComputerPlayer {
   }
 
   // Legacy methods kept for backward compatibility with existing tests
-  private findWinningMove(board: readonly Cell[], player: Player): number {
-    for (const combination of this.WINNING_COMBINATIONS) {
-      const [a, b, c] = combination;
-      const values = [board[a], board[b], board[c]];
-      const playerCount = values.filter(v => v === player).length;
-      const emptyCount = values.filter(v => v === null).length;
+  private findWinningMove(board: readonly Cell[], player: Player, boardSize = 3, kInRow = 3): number {
+    // Try each empty position to see if it creates a win
+    for (let pos = 0; pos < board.length; pos++) {
+      if (board[pos] !== null) continue; // Skip occupied cells
       
-      if (playerCount === 2 && emptyCount === 1) {
-        if (board[a] === null) return a;
-        if (board[b] === null) return b;
-        if (board[c] === null) return c;
+      // Temporarily place the player's symbol
+      const testBoard = [...board];
+      testBoard[pos] = player;
+      
+      // Check if this creates a win
+      if (this.findWinner(testBoard, boardSize, kInRow) === player) {
+        return pos;
       }
     }
     return -1;

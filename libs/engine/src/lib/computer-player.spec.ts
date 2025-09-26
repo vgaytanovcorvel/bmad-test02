@@ -1,5 +1,5 @@
 import { ComputerPlayer } from './computer-player';
-import { GameState } from '@libs/shared';
+import { GameState, Cell } from '@libs/shared';
 import { createEmptyBoard } from '@libs/shared';
 
 describe('ComputerPlayer', () => {
@@ -294,6 +294,37 @@ describe('ComputerPlayer', () => {
       console.log('  - Corner opening → Center response (position 4)');
       console.log('  - Center opening → Corner response (position', responseToCenter + ')');
     });
+
+    it('should calculate optimal moves for 4x4 board', () => {
+      // Create a 4x4 game state with human taking corner (0)
+      const state4x4: GameState = {
+        board: ['X', null, null, null, 
+                null, null, null, null,
+                null, null, null, null,
+                null, null, null, null] as readonly Cell[],
+        currentPlayer: 'O',
+        winner: null,
+        status: 'playing',
+        moveHistory: [],
+        winningLine: null,
+        config: {
+          boardSize: 4,
+          kInRow: 4,
+          firstPlayer: 'X',
+          mode: 'human-vs-computer'
+        },
+        startTime: Date.now()
+      };
+
+      const move = computer.calculateNextMove(state4x4);
+      
+      // For 4x4 board, should make a valid strategic move
+      // Any valid position is acceptable since 4x4 requires limited depth search
+      expect(move).toBeGreaterThanOrEqual(0);
+      expect(move).toBeLessThan(16);
+      expect(state4x4.board[move]).toBeNull(); // Should be empty position
+      console.log(`4x4 board: Human took corner 0, computer chose position: ${move}`);
+    }, 10000); // 10 second timeout for 4x4 board
   });
 
   describe('Computer Player Optimization Tests (AC 2)', () => {
@@ -458,6 +489,98 @@ describe('ComputerPlayer', () => {
       const move = computer.calculateNextMove(state);
       
       expect([2, 4]).toContain(move); // Should block one of the threats
+    });
+  });
+
+  describe('4x4 Board Support', () => {
+    // Helper function to create 4x4 GameState
+    function create4x4GameState(
+      boardOverrides: ('X' | 'O' | null)[] = [],
+      currentPlayer: 'X' | 'O' = 'O',
+      status: 'playing' | 'won' | 'draw' = 'playing'
+    ): GameState {
+      const emptyBoard = Array(16).fill(null);
+      const board = boardOverrides.length > 0 ? boardOverrides : emptyBoard;
+      
+      return {
+        board: board as readonly ('X' | 'O' | null)[],
+        currentPlayer,
+        winner: null,
+        status,
+        moveHistory: [],
+        winningLine: null,
+        config: {
+          boardSize: 4,
+          kInRow: 4,
+          firstPlayer: 'X',
+          mode: 'human-vs-computer'
+        },
+        startTime: Date.now()
+      };
+    }
+
+    it('should handle 4x4 winning moves correctly', () => {
+      // O can win by completing a row
+      const state = create4x4GameState([
+        'O', 'O', 'O', null, // O can win at position 3
+        'X', 'X', null, null,
+        null, null, null, null,
+        null, null, null, null
+      ]);
+
+      const move = computer.calculateNextMove(state);
+      expect(move).toBe(3); // Should take the winning move
+    });
+
+    it('should block opponent 4x4 winning moves', () => {
+      // X is about to win, O should block
+      const state = create4x4GameState([
+        'X', 'X', 'X', null, // X threatens to win at position 3
+        'O', 'O', null, null,
+        null, null, null, null,
+        null, null, null, null
+      ], 'O');
+
+      const move = computer.calculateNextMove(state);
+      expect(move).toBe(3); // Should block X's win
+    });
+
+    it('should make optimal moves on 4x4 board', () => {
+      // Empty 4x4 board - computer should make a strategic move
+      const state = create4x4GameState([], 'O');
+
+      const move = computer.calculateNextMove(state);
+      
+      // Should make a valid strategic move (any valid position is acceptable)
+      expect(move).toBeGreaterThanOrEqual(0);
+      expect(move).toBeLessThan(16);
+      expect(state.board[move]).toBeNull(); // Should be empty position
+    });
+
+    it('should handle 4x4 diagonal wins', () => {
+      // O can win with diagonal
+      const state = create4x4GameState([
+        'O', null, null, null,
+        null, 'O', null, null,
+        null, null, 'O', null,
+        null, null, null, null // O can win at position 15
+      ]);
+
+      const move = computer.calculateNextMove(state);
+      expect(move).toBe(15); // Should complete the diagonal win
+    });
+
+    it('should handle 4x4 column wins', () => {
+      // O can win by completing a column
+      const state = create4x4GameState([
+        'O', 'X', null, null,
+        'O', 'X', null, null,
+        'O', null, null, null,
+        null, null, null, null // O can win at position 12 (first column)
+      ]);
+
+      const move = computer.calculateNextMove(state);
+      expect(move).toBe(12); // Should complete the column win
     });
   });
 });

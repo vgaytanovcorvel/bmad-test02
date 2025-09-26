@@ -21,11 +21,7 @@
           }
         ],
         "styles": ["apps/ui/src/styles.css"],
-        "server": "apps/ui/src/main.server.ts",
-        "ssr": {
-          "entry": "apps/ui/src/server.ts"
-        },
-        "outputMode": "server"
+        "outputMode": "static"
       },
       "configurations": {
         "production": {
@@ -104,7 +100,7 @@
       "options": {
         "buildTarget": "ui:build",
         "port": 4200,
-        "staticFilePath": "dist/apps/ui/browser",
+        "staticFilePath": "dist/apps/ui",
         "spa": true
       }
     }

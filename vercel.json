@@ -1,11 +1,5 @@
 {
   "version": 2,
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
-  ],
   "buildCommand": "npm run build:ui:static",
   "outputDirectory": "dist/apps/ui/browser",
   "framework": null,

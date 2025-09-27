@@ -5,27 +5,130 @@
   
   <main class="credits-main">
     <div class="credits-content">
-      <div class="credits-section">
-        <h2 class="text-xl font-semibold text-gray-700 mb-4">Development Team</h2>
-        <p class="text-gray-600 mb-6">This Tic Tac Toe showcase was built to demonstrate modern Angular development practices and AI-assisted development workflows.</p>
-        
-        <div class="placeholder-content">
-          <p class="text-sm text-gray-500 italic">Detailed credits and acknowledgments will be added in Epic 4 implementation.</p>
+      <section class="credits-section" data-testid="contributors-section">
+        <h2 class="text-xl font-semibold text-gray-700 mb-4">Contributors</h2>
+        <div class="contributors-content">
+          <div class="project-info mb-6">
+            <h3 class="text-lg font-medium text-gray-700 mb-2">Project Overview</h3>
+            <p class="text-gray-600 mb-4">This Tic Tac Toe Showcase demonstrates modern Angular development practices with perfect computer opponents, AI-assisted development workflows, and enterprise-grade code quality standards.</p>
+          </div>
+          
+          <div class="team-acknowledgments mb-6">
+            <h3 class="text-lg font-medium text-gray-700 mb-2">Development Team</h3>
+            <ul class="list-disc list-inside text-gray-600 space-y-1">
+              <li>Tic-Tac-Toe Showcase Project Development Team</li>
+              <li>AI-Assisted Development Methodology Contributors</li>
+              <li>Open Source Community (via dependencies and tools)</li>
+            </ul>
+          </div>
+          
+          <div class="methodology-info">
+            <h3 class="text-lg font-medium text-gray-700 mb-2">Development Methodology</h3>
+            <p class="text-gray-600">Built using modern development practices including test-driven development, AI-assisted coding, enterprise architecture patterns, and comprehensive quality gates.</p>
+          </div>
         </div>
-      </div>
+      </section>
       
-      <div class="credits-section">
-        <h2 class="text-xl font-semibold text-gray-700 mb-4">Technology Stack</h2>
-        <ul class="technology-list">
-          <li class="text-gray-600">Angular 17+ with Standalone Components</li>
-          <li class="text-gray-600">Nx Monorepo Tooling</li>
-          <li class="text-gray-600">Tailwind CSS for Styling</li>
-          <li class="text-gray-600">TypeScript for Type Safety</li>
-          <li class="text-gray-600">Jest & Playwright for Testing</li>
-        </ul>
-      </div>
+      <section class="credits-section">
+        <h2 class="text-xl font-semibold text-gray-700 mb-4">Dependencies</h2>
+        <div class="dependency-table-container overflow-x-auto">
+          <table class="dependency-table w-full border-collapse" role="table" aria-label="Project Dependencies" data-testid="dependency-table">
+            <thead>
+              <tr class="border-b-2 border-gray-300">
+                <th scope="col" class="text-left py-3 px-4 font-semibold text-gray-700">Dependency</th>
+                <th scope="col" class="text-left py-3 px-4 font-semibold text-gray-700">Version</th>
+                <th scope="col" class="text-left py-3 px-4 font-semibold text-gray-700">License</th>
+                <th scope="col" class="text-left py-3 px-4 font-semibold text-gray-700">Purpose</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="border-b border-gray-200 hover:bg-gray-50">
+                <td class="py-3 px-4 font-medium text-gray-800">Angular</td>
+                <td class="py-3 px-4 text-gray-600">20.2.0</td>
+                <td class="py-3 px-4 text-gray-600">MIT</td>
+                <td class="py-3 px-4 text-gray-600">Core framework with standalone components and signals</td>
+              </tr>
+              <tr class="border-b border-gray-200 hover:bg-gray-50">
+                <td class="py-3 px-4 font-medium text-gray-800">Nx</td>
+                <td class="py-3 px-4 text-gray-600">21.5.3</td>
+                <td class="py-3 px-4 text-gray-600">MIT</td>
+                <td class="py-3 px-4 text-gray-600">Monorepo tooling and project orchestration</td>
+              </tr>
+              <tr class="border-b border-gray-200 hover:bg-gray-50">
+                <td class="py-3 px-4 font-medium text-gray-800">Vite</td>
+                <td class="py-3 px-4 text-gray-600">Latest</td>
+                <td class="py-3 px-4 text-gray-600">MIT</td>
+                <td class="py-3 px-4 text-gray-600">Fast build tool with HMR (via @angular/build)</td>
+              </tr>
+              <tr class="border-b border-gray-200 hover:bg-gray-50">
+                <td class="py-3 px-4 font-medium text-gray-800">Tailwind CSS</td>
+                <td class="py-3 px-4 text-gray-600">3.4.0</td>
+                <td class="py-3 px-4 text-gray-600">MIT</td>
+                <td class="py-3 px-4 text-gray-600">Utility-first CSS framework</td>
+              </tr>
+              <tr class="border-b border-gray-200 hover:bg-gray-50">
+                <td class="py-3 px-4 font-medium text-gray-800">TypeScript</td>
+                <td class="py-3 px-4 text-gray-600">5.9.2</td>
+                <td class="py-3 px-4 text-gray-600">Apache 2.0</td>
+                <td class="py-3 px-4 text-gray-600">Type-safe development and enhanced DX</td>
+              </tr>
+              <tr class="border-b border-gray-200 hover:bg-gray-50">
+                <td class="py-3 px-4 font-medium text-gray-800">Jest</td>
+                <td class="py-3 px-4 text-gray-600">29.7.0</td>
+                <td class="py-3 px-4 text-gray-600">MIT</td>
+                <td class="py-3 px-4 text-gray-600">Unit testing framework with coverage reporting</td>
+              </tr>
+              <tr class="border-b border-gray-200 hover:bg-gray-50">
+                <td class="py-3 px-4 font-medium text-gray-800">Playwright</td>
+                <td class="py-3 px-4 text-gray-600">1.36.0</td>
+                <td class="py-3 px-4 text-gray-600">Apache 2.0</td>
+                <td class="py-3 px-4 text-gray-600">End-to-end testing with multi-browser support</td>
+              </tr>
+              <tr class="border-b border-gray-200 hover:bg-gray-50">
+                <td class="py-3 px-4 font-medium text-gray-800">PNPM</td>
+                <td class="py-3 px-4 text-gray-600">Latest</td>
+                <td class="py-3 px-4 text-gray-600">MIT</td>
+                <td class="py-3 px-4 text-gray-600">Efficient package manager with workspace support</td>
+              </tr>
+              <tr class="border-b border-gray-200 hover:bg-gray-50">
+                <td class="py-3 px-4 font-medium text-gray-800">ESLint</td>
+                <td class="py-3 px-4 text-gray-600">9.8.0</td>
+                <td class="py-3 px-4 text-gray-600">MIT</td>
+                <td class="py-3 px-4 text-gray-600">Code linting with Angular-specific rules</td>
+              </tr>
+              <tr class="hover:bg-gray-50">
+                <td class="py-3 px-4 font-medium text-gray-800">Prettier</td>
+                <td class="py-3 px-4 text-gray-600">2.6.2</td>
+                <td class="py-3 px-4 text-gray-600">MIT</td>
+                <td class="py-3 px-4 text-gray-600">Code formatting for consistent style</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
     </div>
     
+    <section class="credits-section license-files-section">
+      <h2 class="text-xl font-semibold text-gray-700 mb-4">License Information</h2>
+      <div class="license-links space-y-4">
+        <div class="license-link-item">
+          <h3 class="text-lg font-medium text-gray-700 mb-2">Project License</h3>
+          <p class="text-gray-600 mb-2">This project is licensed under the MIT License.</p>
+          <a href="/LICENSE.txt" class="license-link text-blue-600 hover:text-blue-800 underline" data-testid="license-link" target="_blank" rel="noopener noreferrer">
+            View LICENSE file →
+          </a>
+        </div>
+        
+        <div class="license-link-item">
+          <h3 class="text-lg font-medium text-gray-700 mb-2">Third-Party Attributions</h3>
+          <p class="text-gray-600 mb-2">Copyright notices and license references for all dependencies.</p>
+          <a href="/NOTICE.txt" class="license-link text-blue-600 hover:text-blue-800 underline" data-testid="notice-link" target="_blank" rel="noopener noreferrer">
+            View NOTICE file →
+          </a>
+        </div>
+      </div>
+    </section>
+
     <div class="navigation-section">
       <a routerLink="/" class="nav-button" data-testid="back-to-game">
         ← Back to Game

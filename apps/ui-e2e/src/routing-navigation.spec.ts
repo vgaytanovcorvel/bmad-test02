@@ -35,6 +35,84 @@ test.describe('Page Navigation', () => {
     await expect(page.locator('[data-testid="game-page"]')).toBeVisible();
   });
 
+  test('credits page displays attribution information', async ({ page }) => {
+    await page.goto('/credits');
+    
+    // Verify page loads and has proper title
+    await expect(page.locator('[data-testid="credits-page"]')).toBeVisible();
+    await expect(page.locator('h1')).toHaveText('Credits');
+    
+    // Verify contributors section
+    const contributorsSection = page.locator('[data-testid="contributors-section"]');
+    await expect(contributorsSection).toBeVisible();
+    await expect(contributorsSection.locator('h2')).toHaveText('Contributors');
+    
+    // Verify dependency table exists and is accessible
+    const dependencyTable = page.getByRole('table', { name: /dependencies/i });
+    await expect(dependencyTable).toBeVisible();
+    
+    // Verify license links work
+    const licenseLink = page.locator('[data-testid="license-link"]');
+    const noticeLink = page.locator('[data-testid="notice-link"]');
+    await expect(licenseLink).toBeVisible();
+    await expect(noticeLink).toBeVisible();
+    
+    // Verify navigation works
+    await page.getByTestId('back-to-game').click();
+    await expect(page).toHaveURL('/');
+  });
+
+  test('LICENSE and NOTICE file links are accessible and functional', async ({ page }) => {
+    await page.goto('/credits');
+    
+    // Test LICENSE link functionality
+    const licenseLink = page.locator('[data-testid="license-link"]');
+    await expect(licenseLink).toBeVisible();
+    await expect(licenseLink).toHaveAttribute('href', '/LICENSE.txt');
+    await expect(licenseLink).toHaveAttribute('target', '_blank');
+    await expect(licenseLink).toHaveAttribute('rel', 'noopener noreferrer');
+    
+    // Test NOTICE link functionality
+    const noticeLink = page.locator('[data-testid="notice-link"]');
+    await expect(noticeLink).toBeVisible();
+    await expect(noticeLink).toHaveAttribute('href', '/NOTICE.txt');
+    await expect(noticeLink).toHaveAttribute('target', '_blank');
+    await expect(noticeLink).toHaveAttribute('rel', 'noopener noreferrer');
+    
+    // Test that files are actually accessible (open in new tab and verify content)
+    const [licensePagePromise] = await Promise.all([
+      page.context().waitForEvent('page'),
+      licenseLink.click()
+    ]);
+    const licensePage = await licensePagePromise;
+    await licensePage.waitForLoadState();
+    
+    // Verify LICENSE file content (should not contain source maps)
+    await expect(licensePage).toHaveURL('/LICENSE.txt');
+    const licenseContent = await licensePage.textContent('body');
+    expect(licenseContent).toContain('MIT License');
+    expect(licenseContent).toContain('Copyright (c) 2025 Tic-Tac-Toe Showcase Project');
+    expect(licenseContent).not.toContain('sourceMappingURL'); // Verify no source maps
+    await licensePage.close();
+    
+    // Test NOTICE file
+    const [noticePagePromise] = await Promise.all([
+      page.context().waitForEvent('page'),
+      noticeLink.click()
+    ]);
+    const noticePage = await noticePagePromise;
+    await noticePage.waitForLoadState();
+    
+    // Verify NOTICE file content (should not contain source maps)
+    await expect(noticePage).toHaveURL('/NOTICE.txt');
+    const noticeContent = await noticePage.textContent('body');
+    expect(noticeContent).toContain('Tic-Tac-Toe Showcase Project');
+    expect(noticeContent).toContain('Angular');
+    expect(noticeContent).toContain('MIT License');
+    expect(noticeContent).not.toContain('sourceMappingURL'); // Verify no source maps
+    await noticePage.close();
+  });
+
   test('should maintain responsive layout on mobile viewport', async ({ page }) => {
     // Set mobile viewport
     await page.setViewportSize({ width: 375, height: 667 });

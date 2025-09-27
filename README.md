@@ -1449,6 +1449,69 @@ For detailed testing procedures and results, see:
 - `docs/qa/cross-browser-testing/` - Complete testing documentation
 - `docs/stories/4.4.cross-browser-smoke.md` - Testing story and results
 
+## 📊 Performance Characteristics
+
+### Bundle Size Analysis
+
+This application is optimized for fast loading with a minimal bundle size:
+
+| Metric | Size | Target | Status |
+|--------|------|--------|---------|
+| **Total Bundle (gzipped)** | 90.14 KB | <500 KB | ✅ Excellent (82% below target) |
+| **Initial Load (gzipped)** | 77.36 KB | <500 KB | ✅ Optimal for first page experience |
+| **Complete Bundle (raw)** | 362.5 KB | <1 MB | ✅ Well within limits |
+
+### Bundle Breakdown
+
+**Initial Chunks (Always Loaded):**
+- Angular Framework Core: 42.04 KB (gzipped)
+- Angular Platform & Router: 23.81 KB (gzipped)
+- Browser Polyfills: 8.44 KB (gzipped)
+- Application Code: 3.07 KB (gzipped)
+
+**Lazy Chunks (Route-Based Loading):**
+- Game Components: 12.78 KB (gzipped) - Loaded only when needed
+- Credits & Health Pages: Separate chunks for optimal performance
+
+### Performance Metrics
+
+**Loading Performance:**
+- **First Contentful Paint**: <1.5 seconds (target)
+- **Time to Interactive**: <3 seconds on 3G connection
+- **Bundle Compression**: 75% reduction with gzip compression
+- **Initial Load Time**: Optimized for mobile-first experience
+
+**Build Optimizations:**
+- ✅ Tree shaking removes unused code
+- ✅ Code splitting with route-based lazy loading
+- ✅ Minification and compression applied
+- ✅ Content hashing for optimal browser caching
+- ✅ Angular standalone components for smaller footprint
+
+### Performance Budget
+
+The application maintains strict performance budgets:
+- **Bundle Size Budget**: 500KB warning / 1MB error threshold
+- **Component Style Budget**: 4KB warning / 8KB error threshold
+- **Performance Grade**: **Excellent** - 82% below target with significant headroom
+
+### Dependency Analysis
+
+**Major Dependencies:**
+- Angular 20.2.x (263 KB raw) - Modern framework with optimized bundle
+- Game Engine (39 KB raw) - Custom tic-tac-toe implementation
+- Tailwind CSS (10 KB raw) - Utility-first CSS with PurgeCSS optimization
+
+**Third-Party Libraries:**
+- `@angular/core`, `@angular/common`, `@angular/router`
+- `rxjs` (Angular dependency, minimal usage)
+- `zone.js` (Angular requirement)
+- `tslib` (TypeScript runtime helpers)
+
+For complete bundle analysis and optimization recommendations, see:
+- `docs/performance/bundle-size-report.md` - Detailed size breakdown
+- `docs/performance/optimization-recommendations.md` - Future optimization strategies
+
 ---
 
 **Built with Angular 17+, Nx, and Tailwind CSS** 🚀

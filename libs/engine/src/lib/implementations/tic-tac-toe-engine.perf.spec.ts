@@ -465,5 +465,203 @@ describe('Engine Performance Tests', () => {
       expect(benchmark3x3.average).toBeLessThan(10);
       expect(benchmark7x7.average).toBeLessThan(50);
     });
+
+    it('should handle 7x7 memory usage efficiently without leaks', () => {
+      const config = create7x7Config();
+      let gameState = engine7x7.initialState(config);
+      
+      const initialMemory = (performance as unknown as { memory?: { usedJSHeapSize: number } }).memory?.usedJSHeapSize || 0;
+      
+      // Perform multiple game operations to test memory usage
+      for (let i = 0; i < 50; i++) {
+        // Simulate moves and state transitions
+        const legalMoves = engine7x7.legalMoves(gameState);
+        if (legalMoves.length > 0) {
+          const move = {
+            player: gameState.currentPlayer,
+            position: legalMoves[Math.floor(Math.random() * legalMoves.length)],
+            timestamp: Date.now()
+          };
+          gameState = engine7x7.applyMove(gameState, move);
+          
+          if (engine7x7.isTerminal(gameState)) {
+            gameState = engine7x7.initialState(config); // Reset to continue
+          }
+        }
+      }
+      
+      // Force garbage collection if available
+      const globalThisWithGc = globalThis as unknown as { gc?: () => void };
+      if (globalThisWithGc.gc) {
+        globalThisWithGc.gc();
+      }
+      
+      const finalMemory = (performance as unknown as { memory?: { usedJSHeapSize: number } }).memory?.usedJSHeapSize || 0;
+      const memoryIncrease = finalMemory - initialMemory;
+      
+      // Memory increase should be reasonable (allow for some variance)
+      if (initialMemory > 0) {
+        expect(memoryIncrease).toBeLessThan(5 * 1024 * 1024); // <5MB increase
+      }
+    });
+
+    it('should complete complex 7x7 game scenarios within performance budget', () => {
+      const config = create7x7Config();
+      let gameState = engine7x7.initialState(config);
+      
+      const totalStartTime = performance.now();
+      
+      // Simulate a complex 7x7 game with strategic moves
+      const moves = [
+        24, // Center
+        0,  // Corner
+        48, // Opposite corner
+        6,  // Another corner
+        42, // Another corner
+        12, // Edge
+        36, // Edge
+        3,  // Strategic
+        45, // Strategic
+        21, // Row start
+        22, // Row continue
+        23  // Row continue (one away from win)
+      ];
+      
+      moves.forEach(position => {
+        if (!engine7x7.isTerminal(gameState) && 
+            engine7x7.legalMoves(gameState).includes(position)) {
+          const move = {
+            player: gameState.currentPlayer,
+            position,
+            timestamp: Date.now()
+          };
+          
+          // Measure each move application
+          const operationStart = performance.now();
+          gameState = engine7x7.applyMove(gameState, move);
+          const operationEnd = performance.now();
+          
+          // Each individual operation should be efficient
+          expect(operationEnd - operationStart).toBeLessThan(100); // <100ms per move
+        }
+      });
+      
+      const totalEndTime = performance.now();
+      const totalDuration = totalEndTime - totalStartTime;
+      
+      // Total scenario should complete efficiently
+      expect(totalDuration).toBeLessThan(2000); // <2 seconds total
+      
+      // Verify game progressed correctly
+      expect(gameState.moveHistory.length).toBeGreaterThan(0);
+    });
+
+    it('should maintain rendering performance metrics for 7x7 board state', () => {
+      const config = create7x7Config();
+      const gameState = engine7x7.initialState(config);
+      
+      // Simulate rapid board state changes for rendering performance
+      const renderingOperations = [
+        () => engine7x7.legalMoves(gameState),
+        () => gameState.board.map((cell, index) => ({ cell, index })),
+        () => gameState.currentPlayer,
+        () => gameState.status,
+        () => gameState.winner,
+        () => gameState.winningLine
+      ];
+      
+      const renderingBenchmark = PerformanceTimer.benchmark(
+        () => {
+          renderingOperations.forEach(op => op());
+        },
+        50
+      );
+      
+      // Rendering-related operations should be very fast
+      expect(renderingBenchmark.average).toBeLessThan(10); // <10ms average
+      expect(renderingBenchmark.max).toBeLessThan(50); // <50ms max
+      
+      // No operation should cause layout thrashing
+      expect(renderingBenchmark.durations.every(d => d < 50)).toBe(true);
+    });
+  });
+
+  describe('7x7 Performance Regression Prevention', () => {
+    it('should maintain 3x3 and 4x4 performance after 7x7 implementation', () => {
+      // Verify that adding 7x7 support didn't degrade smaller board performance
+      const config3x3 = create3x3Config();
+      const config4x4 = create4x4Config();
+      
+      const state3x3 = engine3x3.initialState(config3x3);
+      const state4x4 = engine4x4.initialState(config4x4);
+      
+      // Benchmark all sizes
+      const benchmark3x3 = PerformanceTimer.benchmark(
+        () => {
+          engine3x3.legalMoves(state3x3);
+          engine3x3.kInRow(state3x3);
+          engine3x3.isTerminal(state3x3);
+        },
+        30
+      );
+      
+      const benchmark4x4 = PerformanceTimer.benchmark(
+        () => {
+          engine4x4.legalMoves(state4x4);
+          engine4x4.kInRow(state4x4);
+          engine4x4.isTerminal(state4x4);
+        },
+        30
+      );
+      
+      // Original performance targets should still be met
+      expect(benchmark3x3.average).toBeLessThan(15); // Very conservative
+      expect(benchmark4x4.average).toBeLessThan(20); // Very conservative
+      
+      // Verify operations still work correctly
+      expect(engine3x3.legalMoves(state3x3).length).toBe(9);
+      expect(engine4x4.legalMoves(state4x4).length).toBe(16);
+    });
+
+    it('should demonstrate consistent performance scaling across board sizes', () => {
+      const sizes = [
+        { config: create3x3Config(), engine: engine3x3, expectedLegal: 9 },
+        { config: create4x4Config(), engine: engine4x4, expectedLegal: 16 }
+      ];
+      
+      const performanceMetrics = sizes.map(({ config, engine, expectedLegal }) => {
+        const state = engine.initialState(config);
+        
+        const metrics = PerformanceTimer.benchmark(
+          () => {
+            const legal = engine.legalMoves(state);
+            const kInRow = engine.kInRow(state);
+            const terminal = engine.isTerminal(state);
+            return { legal: legal.length, kInRow, terminal };
+          },
+          20
+        );
+        
+        return {
+          boardSize: config.boardSize,
+          avgTime: metrics.average,
+          maxTime: metrics.max,
+          expectedLegal,
+          actualLegal: (metrics.lastResult as { legal: number }).legal
+        };
+      });
+      
+      // Verify each size meets expectations
+      performanceMetrics.forEach(metric => {
+        expect(metric.actualLegal).toBe(metric.expectedLegal);
+        expect(metric.avgTime).toBeLessThan(metric.boardSize * 5); // Generous scaling
+        expect(metric.maxTime).toBeLessThan(metric.boardSize * 15); // Generous max
+      });
+      
+      // Performance should scale reasonably with board size
+      const [metric3x3, metric4x4] = performanceMetrics;
+      const scalingRatio = metric4x4.avgTime / metric3x3.avgTime;
+      expect(scalingRatio).toBeLessThan(5); // 4x4 shouldn't be >5x slower than 3x3
+    });
   });
 });

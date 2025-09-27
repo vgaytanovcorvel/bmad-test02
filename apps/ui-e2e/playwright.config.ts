@@ -38,7 +38,7 @@ export default defineConfig({
   webServer: {
     command: 'pnpm exec nx serve ui',
     url: 'http://localhost:4200',
-    reuseExistingServer: false, // Always start fresh server and shutdown after tests
+    reuseExistingServer: true, // Reuse existing server if available
     cwd: workspaceRoot,
     timeout: 120000, // 2 minutes timeout for server startup
     stdout: 'pipe',

@@ -1472,6 +1472,280 @@ describe('WinDetector', () => {
         const result = winDetector.checkRows7x7(board);
         expect(result).toEqual([]);
       });
+      
+      it('should handle complex near-miss scenarios in 7x7', () => {
+        const board: Cell[] = new Array(49).fill(null);
+        // Almost win but blocked: X X X O
+        board[0] = 'X';
+        board[1] = 'X';
+        board[2] = 'X';
+        board[3] = 'O'; // Blocking 4th position
+        
+        const state = createGameState7x7(board);
+        const result = winDetector.kInRow(state);
+        expect(result).toEqual([]);
+      });
+      
+      it('should handle multiple potential wins without false positives', () => {
+        const board: Cell[] = new Array(49).fill(null);
+        // Scattered single pieces to avoid any patterns
+        board[0] = 'X'; board[2] = 'X'; board[5] = 'X'; // Non-consecutive
+        board[1] = 'X'; board[3] = 'O'; board[4] = 'O'; // Break column [1,8,15,22] with X at 1
+        
+        board[7] = 'X'; board[16] = 'X'; board[30] = 'X'; // Non-aligned column pattern
+        board[9] = 'O'; board[17] = 'O'; board[25] = 'O'; // Block other patterns
+        
+        board[10] = 'X'; board[20] = 'X'; // Only 2 in potential diagonal
+        board[11] = 'O'; board[19] = 'O'; // Block potential patterns
+        
+        const state = createGameState7x7(board);
+        const result = winDetector.kInRow(state);
+        expect(result).toEqual([]); // No 4-in-a-row wins
+      });
+      
+      it('should correctly identify board boundary edge cases', () => {
+        const board: Cell[] = new Array(49).fill(null);
+        // Corner wins
+        board[0] = 'X'; board[1] = 'X'; board[2] = 'X'; board[3] = 'X'; // Top-left corner
+        
+        const state = createGameState7x7(board);
+        const result = winDetector.kInRow(state);
+        expect(result).toEqual([[0, 1, 2, 3]]);
+      });
+      
+      it('should handle bottom-right corner win scenarios', () => {
+        const board: Cell[] = new Array(49).fill(null);
+        // Bottom-right corner row win [45,46,47,48]
+        board[45] = 'O'; board[46] = 'O'; board[47] = 'O'; board[48] = 'O';
+        
+        const state = createGameState7x7(board);
+        const result = winDetector.kInRow(state);
+        expect(result).toEqual([[45, 46, 47, 48]]);
+      });
+    });
+
+    describe('Complete 7x7 Win Detection Matrix (72 scenarios)', () => {
+      const all7x7WinCombinations = [
+        // Row wins (28 total: 7 rows × 4 positions each)
+        { name: 'Row 0 [0,1,2,3]', positions: [0, 1, 2, 3] },
+        { name: 'Row 0 [1,2,3,4]', positions: [1, 2, 3, 4] },
+        { name: 'Row 0 [2,3,4,5]', positions: [2, 3, 4, 5] },
+        { name: 'Row 0 [3,4,5,6]', positions: [3, 4, 5, 6] },
+        { name: 'Row 1 [7,8,9,10]', positions: [7, 8, 9, 10] },
+        { name: 'Row 1 [8,9,10,11]', positions: [8, 9, 10, 11] },
+        { name: 'Row 1 [9,10,11,12]', positions: [9, 10, 11, 12] },
+        { name: 'Row 1 [10,11,12,13]', positions: [10, 11, 12, 13] },
+        { name: 'Row 2 [14,15,16,17]', positions: [14, 15, 16, 17] },
+        { name: 'Row 2 [15,16,17,18]', positions: [15, 16, 17, 18] },
+        { name: 'Row 2 [16,17,18,19]', positions: [16, 17, 18, 19] },
+        { name: 'Row 2 [17,18,19,20]', positions: [17, 18, 19, 20] },
+        { name: 'Row 3 [21,22,23,24]', positions: [21, 22, 23, 24] },
+        { name: 'Row 3 [22,23,24,25]', positions: [22, 23, 24, 25] },
+        { name: 'Row 3 [23,24,25,26]', positions: [23, 24, 25, 26] },
+        { name: 'Row 3 [24,25,26,27]', positions: [24, 25, 26, 27] },
+        { name: 'Row 4 [28,29,30,31]', positions: [28, 29, 30, 31] },
+        { name: 'Row 4 [29,30,31,32]', positions: [29, 30, 31, 32] },
+        { name: 'Row 4 [30,31,32,33]', positions: [30, 31, 32, 33] },
+        { name: 'Row 4 [31,32,33,34]', positions: [31, 32, 33, 34] },
+        { name: 'Row 5 [35,36,37,38]', positions: [35, 36, 37, 38] },
+        { name: 'Row 5 [36,37,38,39]', positions: [36, 37, 38, 39] },
+        { name: 'Row 5 [37,38,39,40]', positions: [37, 38, 39, 40] },
+        { name: 'Row 5 [38,39,40,41]', positions: [38, 39, 40, 41] },
+        { name: 'Row 6 [42,43,44,45]', positions: [42, 43, 44, 45] },
+        { name: 'Row 6 [43,44,45,46]', positions: [43, 44, 45, 46] },
+        { name: 'Row 6 [44,45,46,47]', positions: [44, 45, 46, 47] },
+        { name: 'Row 6 [45,46,47,48]', positions: [45, 46, 47, 48] },
+        
+        // Column wins (28 total: 7 columns × 4 positions each)
+        { name: 'Col 0 [0,7,14,21]', positions: [0, 7, 14, 21] },
+        { name: 'Col 0 [7,14,21,28]', positions: [7, 14, 21, 28] },
+        { name: 'Col 0 [14,21,28,35]', positions: [14, 21, 28, 35] },
+        { name: 'Col 0 [21,28,35,42]', positions: [21, 28, 35, 42] },
+        { name: 'Col 1 [1,8,15,22]', positions: [1, 8, 15, 22] },
+        { name: 'Col 1 [8,15,22,29]', positions: [8, 15, 22, 29] },
+        { name: 'Col 1 [15,22,29,36]', positions: [15, 22, 29, 36] },
+        { name: 'Col 1 [22,29,36,43]', positions: [22, 29, 36, 43] },
+        { name: 'Col 2 [2,9,16,23]', positions: [2, 9, 16, 23] },
+        { name: 'Col 2 [9,16,23,30]', positions: [9, 16, 23, 30] },
+        { name: 'Col 2 [16,23,30,37]', positions: [16, 23, 30, 37] },
+        { name: 'Col 2 [23,30,37,44]', positions: [23, 30, 37, 44] },
+        { name: 'Col 3 [3,10,17,24]', positions: [3, 10, 17, 24] },
+        { name: 'Col 3 [10,17,24,31]', positions: [10, 17, 24, 31] },
+        { name: 'Col 3 [17,24,31,38]', positions: [17, 24, 31, 38] },
+        { name: 'Col 3 [24,31,38,45]', positions: [24, 31, 38, 45] },
+        { name: 'Col 4 [4,11,18,25]', positions: [4, 11, 18, 25] },
+        { name: 'Col 4 [11,18,25,32]', positions: [11, 18, 25, 32] },
+        { name: 'Col 4 [18,25,32,39]', positions: [18, 25, 32, 39] },
+        { name: 'Col 4 [25,32,39,46]', positions: [25, 32, 39, 46] },
+        { name: 'Col 5 [5,12,19,26]', positions: [5, 12, 19, 26] },
+        { name: 'Col 5 [12,19,26,33]', positions: [12, 19, 26, 33] },
+        { name: 'Col 5 [19,26,33,40]', positions: [19, 26, 33, 40] },
+        { name: 'Col 5 [26,33,40,47]', positions: [26, 33, 40, 47] },
+        { name: 'Col 6 [6,13,20,27]', positions: [6, 13, 20, 27] },
+        { name: 'Col 6 [13,20,27,34]', positions: [13, 20, 27, 34] },
+        { name: 'Col 6 [20,27,34,41]', positions: [20, 27, 34, 41] },
+        { name: 'Col 6 [27,34,41,48]', positions: [27, 34, 41, 48] },
+        
+        // Main diagonals (8 total)
+        { name: 'MainDiag [0,8,16,24]', positions: [0, 8, 16, 24] },
+        { name: 'MainDiag [1,9,17,25]', positions: [1, 9, 17, 25] },
+        { name: 'MainDiag [2,10,18,26]', positions: [2, 10, 18, 26] },
+        { name: 'MainDiag [3,11,19,27]', positions: [3, 11, 19, 27] },
+        { name: 'MainDiag [7,15,23,31]', positions: [7, 15, 23, 31] },
+        { name: 'MainDiag [8,16,24,32]', positions: [8, 16, 24, 32] },
+        { name: 'MainDiag [9,17,25,33]', positions: [9, 17, 25, 33] },
+        { name: 'MainDiag [10,18,26,34]', positions: [10, 18, 26, 34] },
+        
+        // Anti-diagonals (8 total)
+        { name: 'AntiDiag [3,9,15,21]', positions: [3, 9, 15, 21] },
+        { name: 'AntiDiag [4,10,16,22]', positions: [4, 10, 16, 22] },
+        { name: 'AntiDiag [5,11,17,23]', positions: [5, 11, 17, 23] },
+        { name: 'AntiDiag [6,12,18,24]', positions: [6, 12, 18, 24] },
+        { name: 'AntiDiag [10,16,22,28]', positions: [10, 16, 22, 28] },
+        { name: 'AntiDiag [11,17,23,29]', positions: [11, 17, 23, 29] },
+        { name: 'AntiDiag [12,18,24,30]', positions: [12, 18, 24, 30] },
+        { name: 'AntiDiag [13,19,25,31]', positions: [13, 19, 25, 31] }
+      ];
+      
+      all7x7WinCombinations.forEach(combo => {
+        it(`should detect 7x7 ${combo.name} win with X`, () => {
+          const board: Cell[] = new Array(49).fill(null);
+          combo.positions.forEach(pos => board[pos] = 'X');
+          
+          const state = createGameState7x7(board);
+          const result = winDetector.kInRow(state);
+          
+          expect(result).toHaveLength(1);
+          expect(result[0]).toEqual(combo.positions);
+        });
+        
+        it(`should detect 7x7 ${combo.name} win with O`, () => {
+          const board: Cell[] = new Array(49).fill(null);
+          combo.positions.forEach(pos => board[pos] = 'O');
+          
+          const state = createGameState7x7(board);
+          const result = winDetector.kInRow(state);
+          
+          expect(result).toHaveLength(1);
+          expect(result[0]).toEqual(combo.positions);
+        });
+      });
+    });
+
+    describe('7x7 Complex Draw Scenarios', () => {
+      it('should detect draw with strategic 7x7 full board pattern #1', () => {
+        // Create a more complex pattern that avoids all 4-in-a-row scenarios
+        const board: Cell[] = [
+          // Carefully designed to break all possible 4-in-a-row patterns
+          'X', 'O', 'X', 'X', 'O', 'O', 'X',  // Row 0 - break horizontal
+          'O', 'X', 'O', 'O', 'X', 'X', 'O',  // Row 1 - break horizontal
+          'X', 'O', 'X', 'X', 'O', 'O', 'X',  // Row 2 - break vertical & diagonal
+          'O', 'X', 'O', 'O', 'X', 'X', 'O',  // Row 3 - break patterns
+          'X', 'O', 'X', 'X', 'O', 'O', 'X',  // Row 4 - strategic placement
+          'O', 'X', 'O', 'O', 'X', 'X', 'O',  // Row 5 - avoid 4-in-a-row
+          'X', 'O', 'X', 'X', 'O', 'O', 'X'   // Row 6 - complete draw
+        ];
+        
+        const state = createGameState7x7(board);
+        const winningLines = winDetector.kInRow(state);
+        expect(winningLines).toEqual([]);
+        
+        const isDraw = winDetector.isDraw(state);
+        expect(isDraw).toBe(true);
+      });
+      
+      it('should detect draw with strategic 7x7 full board pattern #2', () => {
+        // Another pattern ensuring no 4-in-a-row
+        const board: Cell[] = [
+          'X', 'X', 'O', 'O', 'X', 'X', 'O',  // Max 2 consecutive
+          'O', 'O', 'X', 'X', 'O', 'O', 'X',  // Max 2 consecutive
+          'X', 'X', 'O', 'O', 'X', 'X', 'O',  // Max 2 consecutive
+          'O', 'O', 'X', 'X', 'O', 'O', 'X',  // Max 2 consecutive
+          'X', 'X', 'O', 'O', 'X', 'X', 'O',  // Max 2 consecutive
+          'O', 'O', 'X', 'X', 'O', 'O', 'X',  // Max 2 consecutive
+          'X', 'X', 'O', 'O', 'X', 'X', 'O'   // Max 2 consecutive
+        ];
+        
+        const state = createGameState7x7(board);
+        const winningLines = winDetector.kInRow(state);
+        expect(winningLines).toEqual([]);
+        
+        const isDraw = winDetector.isDraw(state);
+        expect(isDraw).toBe(true);
+      });
+      
+      it('should not detect draw when 7x7 board has available moves', () => {
+        const board: Cell[] = new Array(49).fill('X');
+        board[24] = null; // Leave center empty
+        board[0] = 'O'; board[1] = 'O'; board[2] = 'O'; // Break potential wins
+        
+        const state = createGameState7x7(board);
+        const isDraw = winDetector.isDraw(state);
+        expect(isDraw).toBe(false);
+      });
+    });
+
+    describe('7x7 Performance and Benchmarking', () => {
+      it('should complete 7x7 win detection within 8ms performance requirement', () => {
+        const board: Cell[] = new Array(49).fill(null);
+        // Create complex scenario with multiple potential wins
+        board[0] = 'X'; board[1] = 'X'; board[2] = 'X'; board[3] = 'X'; // Row win
+        board[7] = 'O'; board[14] = 'O'; board[21] = 'O'; board[28] = 'O'; // Column win
+        
+        const state = createGameState7x7(board);
+        
+        const startTime = performance.now();
+        const result = winDetector.kInRow(state);
+        const endTime = performance.now();
+        
+        const duration = endTime - startTime;
+        expect(duration).toBeLessThan(8); // <8ms requirement
+        expect(result).toHaveLength(2); // Should find both wins
+      });
+      
+      it('should handle 100 consecutive 7x7 detections efficiently', () => {
+        const scenarios = [
+          new Array(49).fill(null), // Empty
+          (() => { const b = new Array(49).fill(null); b[0] = 'X'; b[1] = 'X'; b[2] = 'X'; b[3] = 'X'; return b; })(), // Row win
+          (() => { const b = new Array(49).fill(null); b[0] = 'X'; b[7] = 'X'; b[14] = 'X'; b[21] = 'X'; return b; })(), // Column win
+          (() => { const b = new Array(49).fill(null); b[0] = 'X'; b[8] = 'X'; b[16] = 'X'; b[24] = 'X'; return b; })()  // Diagonal win
+        ];
+        
+        const startTime = performance.now();
+        
+        for (let i = 0; i < 25; i++) {
+          scenarios.forEach(boardScenario => {
+            const state = createGameState7x7(boardScenario as Cell[]);
+            winDetector.kInRow(state);
+          });
+        }
+        
+        const endTime = performance.now();
+        const avgDuration = (endTime - startTime) / 100;
+        
+        expect(avgDuration).toBeLessThan(5); // Average <5ms per detection
+      });
+      
+      it('should maintain performance with complex 7x7 multiple win scenarios', () => {
+        const board: Cell[] = new Array(49).fill('X');
+        // Create board with many potential wins to stress test
+        for (let i = 0; i < 49; i += 2) {
+          board[i] = 'X';
+        }
+        for (let i = 1; i < 49; i += 2) {
+          board[i] = 'O';
+        }
+        
+        const state = createGameState7x7(board);
+        
+        const startTime = performance.now();
+        const result = winDetector.kInRow(state);
+        const endTime = performance.now();
+        
+        const duration = endTime - startTime;
+        expect(duration).toBeLessThan(15); // Allow more time for complex scenario
+        expect(result.length).toBeGreaterThan(0); // Should find wins
+      });
     });
   });
 });

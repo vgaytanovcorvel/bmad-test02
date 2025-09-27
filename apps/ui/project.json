@@ -100,7 +100,7 @@
       "options": {
         "buildTarget": "ui:build",
         "port": 4200,
-        "staticFilePath": "dist/apps/ui",
+        "staticFilePath": "dist/apps/ui/browser",
         "spa": true
       }
     }

@@ -4,15 +4,7 @@
   "outputDirectory": "dist/apps/ui/browser",
   "framework": null,
   "installCommand": "pnpm install",
-  "functions": {
-    "apps/ui/src/**/*.ts": {
-      "runtime": "@vercel/node"
-    }
-  },
   "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

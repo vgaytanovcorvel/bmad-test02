@@ -106,6 +106,8 @@ describe('Core Game Types', () => {
             return 'Standard 3x3 board';
           case 4:
             return 'Extended 4x4 board';
+          case 7:
+            return 'Large 7x7 board';
           default: {
             const exhaustiveCheck: never = size;
             return exhaustiveCheck;
@@ -115,6 +117,7 @@ describe('Core Game Types', () => {
 
       expect(getBoardDescription(3)).toBe('Standard 3x3 board');
       expect(getBoardDescription(4)).toBe('Extended 4x4 board');
+      expect(getBoardDescription(7)).toBe('Large 7x7 board');
     });
   });
 

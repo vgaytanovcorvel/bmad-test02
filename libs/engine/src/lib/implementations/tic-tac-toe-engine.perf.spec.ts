@@ -322,4 +322,148 @@ describe('Engine Performance Tests', () => {
       expect(kInRowBenchmark.max).toBeLessThan(25);
     });
   });
+
+  describe('7x7 Board Performance Requirements', () => {
+    let engine7x7: TicTacToeEngine;
+
+    beforeEach(() => {
+      engine7x7 = new TicTacToeEngine();
+    });
+
+    function create7x7Config(): GameConfig {
+      return {
+        boardSize: 7,
+        kInRow: 4,
+        firstPlayer: 'X',
+        mode: 'human-vs-human'
+      };
+    }
+
+    it('should meet <8 second initial move calculation requirement', () => {
+      const config = create7x7Config();
+      const gameState = engine7x7.initialState(config);
+      
+      const start = performance.now();
+      
+      // Simulate comprehensive initial move calculation
+      const legalMoves = engine7x7.legalMoves(gameState);
+      const winLines = engine7x7.kInRow(gameState);
+      const isTerminal = engine7x7.isTerminal(gameState);
+      
+      // Test multiple move scenarios for comprehensive calculation
+      for (let i = 0; i < Math.min(10, legalMoves.length); i++) {
+        const move = {
+          player: gameState.currentPlayer,
+          position: legalMoves[i],
+          timestamp: Date.now()
+        };
+        const newState = engine7x7.applyMove(gameState, move);
+        engine7x7.kInRow(newState);
+        engine7x7.isTerminal(newState);
+      }
+      
+      const end = performance.now();
+      const totalTime = (end - start) / 1000; // Convert to seconds
+      
+      // Verify <8 second requirement
+      expect(totalTime).toBeLessThan(8);
+      
+      // Verify operations completed successfully
+      expect(legalMoves.length).toBe(49); // All positions legal initially
+      expect(winLines).toEqual([]); // No wins on empty board
+      expect(isTerminal).toBe(false); // Empty board not terminal
+    });
+
+    it('should maintain efficient 7x7 win detection performance', () => {
+      const config = create7x7Config();
+      const gameState = engine7x7.initialState(config);
+      
+      const winDetectionBenchmark = PerformanceTimer.benchmark(
+        () => engine7x7.kInRow(gameState),
+        20
+      );
+      
+      // 7x7 win detection should complete efficiently
+      expect(winDetectionBenchmark.average).toBeLessThan(50); // 50ms average
+      expect(winDetectionBenchmark.max).toBeLessThan(100); // 100ms max
+    });
+
+    it('should handle 7x7 legal moves calculation efficiently', () => {
+      const config = create7x7Config();
+      const gameState = engine7x7.initialState(config);
+      
+      const legalMovesBenchmark = PerformanceTimer.benchmark(
+        () => engine7x7.legalMoves(gameState),
+        20
+      );
+      
+      // 7x7 legal moves should complete efficiently
+      expect(legalMovesBenchmark.average).toBeLessThan(20); // 20ms average
+      expect(legalMovesBenchmark.max).toBeLessThan(50); // 50ms max
+    });
+
+    it('should maintain 7x7 terminal detection performance', () => {
+      const config = create7x7Config();
+      const gameState = engine7x7.initialState(config);
+      
+      const terminalBenchmark = PerformanceTimer.benchmark(
+        () => engine7x7.isTerminal(gameState),
+        20
+      );
+      
+      // 7x7 terminal detection should complete efficiently
+      expect(terminalBenchmark.average).toBeLessThan(50); // 50ms average
+      expect(terminalBenchmark.max).toBeLessThan(100); // 100ms max
+    });
+
+    it('should handle 7x7 move application efficiently', () => {
+      const config = create7x7Config();
+      const gameState = engine7x7.initialState(config);
+      
+      const moveApplicationBenchmark = PerformanceTimer.benchmark(
+        () => {
+          const move = {
+            player: gameState.currentPlayer,
+            position: 24, // Center position
+            timestamp: Date.now()
+          };
+          return engine7x7.applyMove(gameState, move);
+        },
+        20
+      );
+      
+      // 7x7 move application should complete efficiently
+      expect(moveApplicationBenchmark.average).toBeLessThan(30); // 30ms average
+      expect(moveApplicationBenchmark.max).toBeLessThan(75); // 75ms max
+    });
+
+    it('should scale performance appropriately compared to smaller boards', () => {
+      // Compare 7x7 performance to 3x3 baseline
+      const config3x3 = create3x3Config();
+      const config7x7 = create7x7Config();
+      
+      const state3x3 = engine3x3.initialState(config3x3);
+      const state7x7 = engine7x7.initialState(config7x7);
+      
+      // Benchmark win detection for both sizes
+      const benchmark3x3 = PerformanceTimer.benchmark(
+        () => engine3x3.kInRow(state3x3),
+        20
+      );
+      
+      const benchmark7x7 = PerformanceTimer.benchmark(
+        () => engine7x7.kInRow(state7x7),
+        20
+      );
+      
+      // 7x7 should be reasonably scaled compared to 3x3
+      // Allow up to 15x performance difference (accounts for system variance)
+      const performanceRatio = benchmark7x7.average / benchmark3x3.average;
+      expect(performanceRatio).toBeLessThan(15);
+      
+      // Both should still be under acceptable thresholds
+      expect(benchmark3x3.average).toBeLessThan(10);
+      expect(benchmark7x7.average).toBeLessThan(50);
+    });
+  });
 });

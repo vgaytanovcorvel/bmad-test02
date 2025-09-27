@@ -2,7 +2,9 @@
  * TicTacToe Engine Implementation
  * 
  * Concrete implementation of the Engine interface for tic-tac-toe games.
- * Supports both 3x3 and 4x4 board sizes with k=3 win detection.
+ * Supports 3x3, 4x4, and 7x7 board sizes with appropriate k-in-row detection.
+ * - 3x3 and 4x4 boards use k=3 win condition
+ * - 7x7 boards use k=4 win condition
  * Provides comprehensive k-in-row detection and game state management with
  * immutable state objects and pure functional methods.
  * 
@@ -15,6 +17,7 @@
  * @since 2.2.0 (3x3 support)
  * @since 2.3.0 (4x4 support)
  * @since 2.8.0 (Performance optimizations)
+ * @since 6.1.0 (7x7 support with k=4)
  */
 
 import type { Engine } from '../interfaces/engine.interface';
@@ -23,7 +26,9 @@ import { WinDetector } from './win-detector';
 
 /**
  * Complete tic-tac-toe engine implementation with k-in-row logic.
- * Supports both 3x3 and 4x4 boards with k=3 win condition.
+ * Supports 3x3, 4x4, and 7x7 boards with appropriate k-in-row conditions.
+ * - 3x3 and 4x4 boards: k=3 win condition
+ * - 7x7 boards: k=4 win condition
  * Framework-independent with pure functional methods and immutable state.
  */
 export class TicTacToeEngine implements Engine {
@@ -36,7 +41,7 @@ export class TicTacToeEngine implements Engine {
   /**
    * Creates initial game state from configuration.
    * Generates a clean game state ready for the first move.
-   * Supports both 3x3 (9 cells) and 4x4 (16 cells) board sizes.
+   * Supports 3x3 (9 cells), 4x4 (16 cells), and 7x7 (49 cells) board sizes.
    */
   initialState(config: GameConfig): GameState {
     const boardSize = config.boardSize * config.boardSize;

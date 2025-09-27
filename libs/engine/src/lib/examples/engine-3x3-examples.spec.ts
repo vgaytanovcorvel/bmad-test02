@@ -399,7 +399,7 @@ describe('3x3 Engine Usage Examples', () => {
           mode: 'human-vs-human'
         } as GameConfig;
         EngineFactory.createEngine(invalidConfig);
-      }).toThrow('Invalid board size: 5. Must be 3 or 4');
+      }).toThrow('Invalid board size: 5. Must be 3, 4, or 7');
     });
   });
 

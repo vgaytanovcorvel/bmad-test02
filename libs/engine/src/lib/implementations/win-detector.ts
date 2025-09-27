@@ -229,6 +229,131 @@ export class WinDetector {
   }
 
   /**
+   * Checks all rows for winning lines in a 7x7 board.
+   * Uses sliding window pattern to check 4 win positions per row.
+   * Row 0: [0,1,2,3], [1,2,3,4], [2,3,4,5], [3,4,5,6]
+   * Row 1: [7,8,9,10], [8,9,10,11], [9,10,11,12], [10,11,12,13], etc.
+   * 
+   * @param board - The current board state (49-element array)
+   * @returns Array of winning row coordinates, empty if no row wins
+   * 
+   * @example
+   * ```typescript
+   * const board: Cell[] = ['X', 'X', 'X', 'X', null, null, null, ...];
+   * const detector = new WinDetector();
+   * const result = detector.checkRows7x7(board);
+   * // Returns: [[0, 1, 2, 3]]
+   * ```
+   */
+  checkRows7x7(board: readonly Cell[]): number[][] {
+    const winningLines: number[][] = [];
+    
+    // Check each row with sliding window of size 4
+    for (let row = 0; row < 7; row++) {
+      for (let startCol = 0; startCol <= 3; startCol++) { // 4 windows per row
+        const baseIndex = row * 7 + startCol;
+        const positions = [baseIndex, baseIndex + 1, baseIndex + 2, baseIndex + 3];
+        
+        if (this.isWinningLine(board, positions)) {
+          winningLines.push(positions);
+        }
+      }
+    }
+    
+    return winningLines;
+  }
+
+  /**
+   * Checks all columns for winning lines in a 7x7 board.
+   * Uses sliding window pattern to check 4 win positions per column.
+   * Col 0: [0,7,14,21], [7,14,21,28], [14,21,28,35], [21,28,35,42]
+   * Col 1: [1,8,15,22], [8,15,22,29], [15,22,29,36], [22,29,36,43], etc.
+   * 
+   * @param board - The current board state (49-element array)
+   * @returns Array of winning column coordinates, empty if no column wins
+   * 
+   * @example
+   * ```typescript
+   * const board: Cell[] = ['X', null, null, ..., 'X', null, null, ..., 'X', null, null, ..., 'X', ...];
+   * const detector = new WinDetector();
+   * const result = detector.checkColumns7x7(board);
+   * // Returns: [[0, 7, 14, 21]]
+   * ```
+   */
+  checkColumns7x7(board: readonly Cell[]): number[][] {
+    const winningLines: number[][] = [];
+    
+    // Check each column with sliding window of size 4
+    for (let col = 0; col < 7; col++) {
+      for (let startRow = 0; startRow <= 3; startRow++) { // 4 windows per column
+        const baseIndex = startRow * 7 + col;
+        const positions = [baseIndex, baseIndex + 7, baseIndex + 14, baseIndex + 21];
+        
+        if (this.isWinningLine(board, positions)) {
+          winningLines.push(positions);
+        }
+      }
+    }
+    
+    return winningLines;
+  }
+
+  /**
+   * Checks both main and anti-diagonals for winning lines in a 7x7 board.
+   * Main diagonals (top-left to bottom-right):
+   *   - Starting from row 0: [0,8,16,24], [1,9,17,25], [2,10,18,26], [3,11,19,27]
+   *   - Starting from row 1: [7,15,23,31], [8,16,24,32], [9,17,25,33], [10,18,26,34]
+   *   - Starting from row 2: [14,22,30,38], [15,23,31,39], [16,24,32,40], [17,25,33,41]
+   *   - Starting from row 3: [21,29,37,45], [22,30,38,46], [23,31,39,47], [24,32,40,48]
+   * Anti-diagonals (top-right to bottom-left):
+   *   - Starting from row 0: [3,9,15,21], [4,10,16,22], [5,11,17,23], [6,12,18,24]
+   *   - Starting from row 1: [10,16,22,28], [11,17,23,29], [12,18,24,30], [13,19,25,31]
+   *   - Starting from row 2: [17,23,29,35], [18,24,30,36], [19,25,31,37], [20,26,32,38]
+   *   - Starting from row 3: [24,30,36,42], [25,31,37,43], [26,32,38,44], [27,33,39,45]
+   * OPTIMIZED: Avoids array spread and forEach for better performance.
+   * 
+   * @param board - The current board state (49-element array)
+   * @returns Array of winning diagonal coordinates, empty if no diagonal wins
+   * 
+   * @example
+   * ```typescript
+   * const board: Cell[] = ['X', null, null, null, null, null, null, null, 'X', ...];
+   * const detector = new WinDetector();
+   * const result = detector.checkDiagonals7x7(board);
+   * // Returns: [[0, 8, 16, 24]]
+   * ```
+   */
+  checkDiagonals7x7(board: readonly Cell[]): number[][] {
+    const winningLines: number[][] = [];
+    
+    // Main diagonals (top-left to bottom-right)
+    for (let startRow = 0; startRow <= 3; startRow++) {
+      for (let startCol = 0; startCol <= 3; startCol++) {
+        const baseIndex = startRow * 7 + startCol;
+        const positions = [baseIndex, baseIndex + 8, baseIndex + 16, baseIndex + 24];
+        
+        if (this.isWinningLine(board, positions)) {
+          winningLines.push(positions);
+        }
+      }
+    }
+    
+    // Anti-diagonals (top-right to bottom-left)
+    for (let startRow = 0; startRow <= 3; startRow++) {
+      for (let startCol = 3; startCol <= 6; startCol++) {
+        const baseIndex = startRow * 7 + startCol;
+        const positions = [baseIndex, baseIndex + 6, baseIndex + 12, baseIndex + 18];
+        
+        if (this.isWinningLine(board, positions)) {
+          winningLines.push(positions);
+        }
+      }
+    }
+    
+    return winningLines;
+  }
+
+  /**
    * Combines all k-in-row detection methods to find all winning lines.
    * Integrates results from row, column, and diagonal detection.
    * Automatically detects board size and routes to appropriate methods.
@@ -259,6 +384,11 @@ export class WinDetector {
       this.collectWinningLines(allWinningLines, this.checkRows4x4(state.board));
       this.collectWinningLines(allWinningLines, this.checkColumns4x4(state.board));
       this.collectWinningLines(allWinningLines, this.checkDiagonals4x4(state.board));
+    } else if (boardSize === 7) {
+      // Performance optimization: Direct method calls without intermediate arrays
+      this.collectWinningLines(allWinningLines, this.checkRows7x7(state.board));
+      this.collectWinningLines(allWinningLines, this.checkColumns7x7(state.board));
+      this.collectWinningLines(allWinningLines, this.checkDiagonals7x7(state.board));
     }
     
     return allWinningLines;

@@ -32,15 +32,16 @@ export type Cell = Player | null;
 
 /**
  * Supported board sizes for the tic-tac-toe game.
- * Currently supports 3x3 and 4x4 boards.
+ * Currently supports 3x3, 4x4, and 7x7 boards.
  * 
  * @example
  * ```typescript
  * const standardBoard: BoardSize = 3; // 3x3 board
  * const extendedBoard: BoardSize = 4; // 4x4 board
+ * const largeBoard: BoardSize = 7; // 7x7 board
  * ```
  */
-export type BoardSize = 3 | 4;
+export type BoardSize = 3 | 4 | 7;
 
 /**
  * Available game modes that determine the type of players involved.

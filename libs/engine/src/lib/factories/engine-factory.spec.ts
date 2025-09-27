@@ -86,7 +86,7 @@ describe('EngineFactory', () => {
       } as unknown as GameConfig;
       
       expect(() => EngineFactory.createEngine(invalidConfig))
-        .toThrow('Invalid board size: 5. Must be 3 or 4');
+        .toThrow('Invalid board size: 5. Must be 3, 4, or 7');
     });
     
     it('should throw error for zero board size', () => {
@@ -98,7 +98,7 @@ describe('EngineFactory', () => {
       } as unknown as GameConfig;
       
       expect(() => EngineFactory.createEngine(invalidConfig))
-        .toThrow('Invalid board size: 0. Must be 3 or 4');
+        .toThrow('Invalid board size: 0. Must be 3, 4, or 7');
     });
     
     it('should throw error for negative board size', () => {
@@ -110,7 +110,7 @@ describe('EngineFactory', () => {
       } as unknown as GameConfig;
       
       expect(() => EngineFactory.createEngine(invalidConfig))
-        .toThrow('Invalid board size: -1. Must be 3 or 4');
+        .toThrow('Invalid board size: -1. Must be 3, 4, or 7');
     });
     
     it('should throw error for invalid k value - too high', () => {
@@ -122,7 +122,7 @@ describe('EngineFactory', () => {
       };
       
       expect(() => EngineFactory.createEngine(invalidConfig))
-        .toThrow('Invalid k value: 4. Must be 3 for both board sizes');
+        .toThrow('Invalid k value: 4. Must be 3 for 3x3 and 4x4 boards');
     });
     
     it('should throw error for invalid k value - too low', () => {
@@ -134,7 +134,7 @@ describe('EngineFactory', () => {
       };
       
       expect(() => EngineFactory.createEngine(invalidConfig))
-        .toThrow('Invalid k value: 2. Must be 3 for both board sizes');
+        .toThrow('Invalid k value: 2. Must be 3 for 3x3 and 4x4 boards');
     });
     
     it('should throw error for invalid first player', () => {
@@ -311,6 +311,103 @@ describe('EngineFactory', () => {
         const gameState = engine.initialState(expectedConfig);
         expect(gameState.config.firstPlayer).toBe('X');
       });
+      
+      it('should create 7x7 human vs computer engine', () => {
+        const engine = EngineFactory.createHumanVsComputerEngine(7, 'X');
+        
+        const expectedConfig: GameConfig = {
+          boardSize: 7 as BoardSize,
+          kInRow: 4,
+          firstPlayer: 'X' as Player,
+          mode: 'human-vs-computer' as GameMode
+        };
+        
+        const gameState = engine.initialState(expectedConfig);
+        expect(gameState.config.mode).toBe('human-vs-computer');
+        expect(gameState.config.boardSize).toBe(7);
+        expect(gameState.config.kInRow).toBe(4);
+        expect(gameState.board.length).toBe(49);
+      });
+    });
+    
+    describe('create7x7Engine', () => {
+      it('should create engine with default first player X', () => {
+        const engine = EngineFactory.create7x7Engine();
+        
+        expect(engine).toBeInstanceOf(TicTacToeEngine);
+        
+        const expectedConfig: GameConfig = {
+          boardSize: 7 as BoardSize,
+          kInRow: 4,
+          firstPlayer: 'X' as Player,
+          mode: 'human-vs-human' as GameMode
+        };
+        
+        const gameState = engine.initialState(expectedConfig);
+        expect(gameState.config.boardSize).toBe(7);
+        expect(gameState.config.kInRow).toBe(4);
+        expect(gameState.config.firstPlayer).toBe('X');
+        expect(gameState.config.mode).toBe('human-vs-human');
+        expect(gameState.board.length).toBe(49);
+        expect(gameState.currentPlayer).toBe('X');
+      });
+      
+      it('should create engine with specified first player O', () => {
+        const engine = EngineFactory.create7x7Engine('O');
+        
+        const expectedConfig: GameConfig = {
+          boardSize: 7 as BoardSize,
+          kInRow: 4,
+          firstPlayer: 'O' as Player,
+          mode: 'human-vs-human' as GameMode
+        };
+        
+        const gameState = engine.initialState(expectedConfig);
+        expect(gameState.config.firstPlayer).toBe('O');
+        expect(gameState.currentPlayer).toBe('O');
+        expect(gameState.board.length).toBe(49);
+      });
+    });
+  });
+  
+  describe('7x7 Configuration Validation', () => {
+    it('should accept valid 7x7 configuration with k=4', () => {
+      const config: GameConfig = {
+        boardSize: 7 as BoardSize,
+        kInRow: 4,
+        firstPlayer: 'X' as Player,
+        mode: 'human-vs-human' as GameMode
+      };
+      
+      expect(() => EngineFactory.createEngine(config)).not.toThrow();
+      
+      const engine = EngineFactory.createEngine(config);
+      const gameState = engine.initialState(config);
+      expect(gameState.board.length).toBe(49);
+    });
+    
+    it('should throw error for 7x7 board with invalid k value (k=3)', () => {
+      const invalidConfig: GameConfig = {
+        boardSize: 7 as BoardSize,
+        kInRow: 3,
+        firstPlayer: 'X' as Player,
+        mode: 'human-vs-human' as GameMode
+      };
+      
+      expect(() => EngineFactory.createEngine(invalidConfig))
+        .toThrow('Invalid k value: 3. Must be 4 for 7x7 board');
+    });
+    
+    it('should throw error for 7x7 board with invalid k value (k=5)', () => {
+      const invalidConfig: GameConfig = {
+        boardSize: 7 as BoardSize,
+        kInRow: 5,
+        firstPlayer: 'X' as Player,
+        mode: 'human-vs-human' as GameMode
+      };
+      
+      expect(() => EngineFactory.createEngine(invalidConfig))
+        .toThrow('Invalid k value: 5. Must be 4 for 7x7 board');
     });
   });
   

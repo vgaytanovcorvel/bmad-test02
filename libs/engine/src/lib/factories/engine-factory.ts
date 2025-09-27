@@ -105,10 +105,33 @@ export class EngineFactory {
   }
   
   /**
-   * Creates an engine configured for human vs computer gameplay.
-   * Supports both 3x3 and 4x4 board sizes with k=3 win condition.
+   * Creates a pre-configured 7x7 engine with default settings.
+   * Uses human-vs-human mode, k=4 win condition, and specified first player.
    * 
-   * @param boardSize - Size of the game board (3 or 4)
+   * @param firstPlayer - Player who moves first (defaults to 'X')
+   * @returns Engine configured for 7x7 game with 4-in-a-row win condition
+   * 
+   * @example
+   * ```typescript
+   * const engine = EngineFactory.create7x7Engine();
+   * const engineWithO = EngineFactory.create7x7Engine('O');
+   * ```
+   */
+  static create7x7Engine(firstPlayer: Player = 'X'): Engine {
+    const config: GameConfig = {
+      boardSize: 7 as BoardSize,
+      kInRow: 4,
+      firstPlayer,
+      mode: 'human-vs-human' as GameMode
+    };
+    return this.createEngine(config);
+  }
+  
+  /**
+   * Creates an engine configured for human vs computer gameplay.
+   * Supports 3x3, 4x4, and 7x7 board sizes with appropriate k values.
+   * 
+   * @param boardSize - Size of the game board (3, 4, or 7)
    * @param firstPlayer - Player who moves first (defaults to 'X')
    * @returns Engine configured for human vs computer mode
    * 
@@ -116,12 +139,14 @@ export class EngineFactory {
    * ```typescript
    * const engine3x3 = EngineFactory.createHumanVsComputerEngine(3, 'X');
    * const engine4x4 = EngineFactory.createHumanVsComputerEngine(4, 'O');
+   * const engine7x7 = EngineFactory.createHumanVsComputerEngine(7, 'X');
    * ```
    */
   static createHumanVsComputerEngine(boardSize: BoardSize, firstPlayer: Player = 'X'): Engine {
+    const kInRow = boardSize === 7 ? 4 : 3;
     const config: GameConfig = {
       boardSize,
-      kInRow: 3,
+      kInRow,
       firstPlayer,
       mode: 'human-vs-computer' as GameMode
     };
@@ -142,12 +167,16 @@ export class EngineFactory {
       throw new Error('GameConfig is required');
     }
     
-    if (config.boardSize !== 3 && config.boardSize !== 4) {
-      throw new Error(`Invalid board size: ${config.boardSize}. Must be 3 or 4`);
+    if (config.boardSize !== 3 && config.boardSize !== 4 && config.boardSize !== 7) {
+      throw new Error(`Invalid board size: ${config.boardSize}. Must be 3, 4, or 7`);
     }
     
-    if (config.kInRow !== 3) {
-      throw new Error(`Invalid k value: ${config.kInRow}. Must be 3 for both board sizes`);
+    if ((config.boardSize === 3 || config.boardSize === 4) && config.kInRow !== 3) {
+      throw new Error(`Invalid k value: ${config.kInRow}. Must be 3 for 3x3 and 4x4 boards`);
+    }
+    
+    if (config.boardSize === 7 && config.kInRow !== 4) {
+      throw new Error(`Invalid k value: ${config.kInRow}. Must be 4 for 7x7 board`);
     }
     
     if (config.firstPlayer !== 'X' && config.firstPlayer !== 'O') {

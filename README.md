@@ -1368,4 +1368,87 @@ By contributing to this project, you agree that your contributions will be licen
 
 ---
 
+## 🌐 Browser Compatibility
+
+### Supported Browsers
+
+This application has been tested and verified to work correctly on the following browsers:
+
+| Browser | Version | Desktop Support | Mobile Support | Notes |
+|---------|---------|-----------------|----------------|--------|
+| **Google Chrome** | 90+ | ✅ Fully Supported | ✅ Fully Supported | Recommended browser |
+| **Mozilla Firefox** | 90+ | ✅ Fully Supported | ✅ Fully Supported | Excellent compatibility |
+| **Microsoft Edge** | 90+ | ✅ Fully Supported | ✅ Fully Supported | Chromium-based |
+| **Safari** | 14+ | ✅ Fully Supported | ✅ Fully Supported | WebKit engine |
+
+### Technical Compatibility
+
+**JavaScript Features:**
+- ES2022+ syntax with polyfills for older browsers
+- Angular 17+ standalone components
+- Native async/await patterns
+- Signal-based reactivity
+
+**CSS Features:**
+- CSS Grid and Flexbox (full modern browser support)
+- CSS Custom Properties for theming
+- Tailwind CSS utilities with autoprefixer
+- Responsive design with mobile-first approach  
+
+**Build System:**
+- Vite bundling with automatic polyfill injection
+- Code splitting and lazy loading
+- Content hashing for optimal caching
+- Bundle size: ~91KB gzipped (initial load)
+
+### Mobile Support
+
+**Responsive Design:**
+- Mobile-first approach with breakpoints at 375px, 768px, 1024px
+- Touch-friendly interface with ≥44px touch targets
+- Optimized for both portrait and landscape orientations
+- Smooth touch interactions for game board
+
+**Performance:**
+- Optimized bundle sizes for mobile networks
+- Fast initial load times (target <3 seconds)
+- Efficient memory usage and battery consumption
+
+### Testing Coverage
+
+Cross-browser testing includes:
+- **Functional Testing**: All game features and routing
+- **Visual Testing**: Layout consistency and styling
+- **Performance Testing**: Loading times and responsiveness  
+- **Accessibility Testing**: Keyboard navigation and screen readers
+- **Mobile Testing**: Touch interactions and responsive design
+
+### Known Issues and Workarounds
+
+**Development Warnings:**
+- Tailwind CSS may show utility class warnings during development (safe to ignore)
+- Sass @import deprecation warnings (planned migration to @use syntax)
+- Component style budget warnings for large CSS bundles (optimization in progress)
+
+**Browser-Specific Notes:**
+- Safari may require additional testing for WebKit-specific behaviors
+- Internet Explorer is not supported (Angular 17+ requirement)
+- Legacy browsers require modern JavaScript polyfills (automatically included)
+
+### Reporting Browser Issues
+
+If you encounter browser-specific issues:
+
+1. **Document the issue** with browser version and OS
+2. **Include steps to reproduce** the problem
+3. **Check console** for JavaScript errors or warnings
+4. **Test in multiple browsers** to verify browser-specific behavior
+5. **Submit issue** with complete environment information
+
+For detailed testing procedures and results, see:
+- `docs/qa/cross-browser-testing/` - Complete testing documentation
+- `docs/stories/4.4.cross-browser-smoke.md` - Testing story and results
+
+---
+
 **Built with Angular 17+, Nx, and Tailwind CSS** 🚀

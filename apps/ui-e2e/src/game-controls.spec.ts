@@ -15,6 +15,13 @@ test.describe('Game Controls', () => {
     // Verify default values
     await expect(page.getByTestId('mode-selector')).toHaveValue('human-vs-human');
     await expect(page.getByTestId('size-selector')).toHaveValue('3');
+    
+    // Verify board size options include 7x7
+    const sizeOptions = page.getByTestId('size-selector').locator('option');
+    await expect(sizeOptions).toHaveCount(3);
+    await expect(sizeOptions.nth(0)).toHaveAttribute('value', '3');
+    await expect(sizeOptions.nth(1)).toHaveAttribute('value', '4');
+    await expect(sizeOptions.nth(2)).toHaveAttribute('value', '7');
   });
 
   test('should change game mode', async ({ page }) => {
@@ -39,7 +46,7 @@ test.describe('Game Controls', () => {
     await page.getByTestId('cell-0').click();
     
     // Verify move was made
-    await expect(page.getByTestId('cell-0')).toHaveText('❌');
+    await expect(page.getByTestId('cell-0')).toContainText('X');
     
     // Change board size to 4x4
     await page.getByTestId('size-selector').selectOption('4');
@@ -55,14 +62,33 @@ test.describe('Game Controls', () => {
     await expect(page.getByTestId('cell-0')).toHaveText('');
   });
 
+  test('should change board size to 7x7', async ({ page }) => {
+    // Change board size to 7x7
+    await page.getByTestId('size-selector').selectOption('7');
+    
+    // Verify the board size changed
+    await expect(page.getByTestId('size-selector')).toHaveValue('7');
+    
+    // Verify board has 49 cells now (7x7)
+    const cells = page.locator('[data-testid^="cell-"]');
+    await expect(cells).toHaveCount(49);
+    
+    // Verify board has correct CSS class
+    await expect(page.getByTestId('game-board')).toHaveClass(/board-7x7/);
+    
+    // Make a move to verify functionality
+    await page.getByTestId('cell-24').click(); // Center cell (position 24 in 7x7)
+    await expect(page.getByTestId('cell-24')).toContainText('X');
+  });
+
   test('should start new game when button clicked', async ({ page }) => {
     // Make some moves
     await page.getByTestId('cell-0').click();
     await page.getByTestId('cell-1').click();
     
     // Verify moves were made
-    await expect(page.getByTestId('cell-0')).toHaveText('❌');
-    await expect(page.getByTestId('cell-1')).toHaveText('⭕');
+    await expect(page.getByTestId('cell-0')).toContainText('X');
+    await expect(page.getByTestId('cell-1')).toContainText('O');
     
     // Click new game button
     await page.getByTestId('new-game-button').click();
@@ -80,11 +106,11 @@ test.describe('Game Controls', () => {
     await page.getByTestId('cell-4').click(); // Center cell
     
     // Verify human move
-    await expect(page.getByTestId('cell-4')).toHaveText('❌');
+    await expect(page.getByTestId('cell-4')).toContainText('X');
     
     // Wait for computer move using expect polling (better than waitForTimeout)
     // Computer should make a move within reasonable time
-    const oCell = page.locator('[data-testid^="cell-"]:has-text("⭕")');
+    const oCell = page.locator('[data-testid^="cell-"][data-player="O"]');
     await expect(oCell).toBeVisible({ timeout: 2000 });
   });
 

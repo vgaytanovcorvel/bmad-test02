@@ -13,6 +13,7 @@ import { formatPlayerSymbol } from '@libs/shared';
       class="game-board" 
       [class.board-3x3]="boardSize() === 3"
       [class.board-4x4]="boardSize() === 4"
+      [class.board-7x7]="boardSize() === 7"
       [class.size-changing]="isBoardResizing$()"
       [class.effects-enabled]="enhancementsEnabled()"
       [attr.data-testid]="'game-board'"
@@ -60,6 +61,26 @@ import { formatPlayerSymbol } from '@libs/shared';
       &.board-4x4 {
         grid-template-columns: repeat(4, 1fr);
         grid-template-rows: repeat(4, 1fr);
+      }
+      
+      &.board-7x7 {
+        grid-template-columns: repeat(7, 1fr);
+        grid-template-rows: repeat(7, 1fr);
+        width: 420px;
+        height: 420px;
+        
+        @media (max-width: 640px) {
+          width: 380px;
+          height: 380px;
+        }
+        
+        @media (max-width: 480px) {
+          width: 350px;
+          height: 350px;
+        }
+        
+        /* Ensure minimum touch target size */
+        min-width: 350px;
       }
     }
 
@@ -344,6 +365,11 @@ import { formatPlayerSymbol } from '@libs/shared';
       .game-board {
         width: 300px;
         height: 300px;
+        
+        &.board-7x7 {
+          width: 380px;
+          height: 380px;
+        }
       }
     }
 
@@ -352,11 +378,22 @@ import { formatPlayerSymbol } from '@libs/shared';
         width: 280px;
         height: 280px;
         padding: 12px;
+        
+        &.board-7x7 {
+          width: 350px;
+          height: 350px;
+          padding: 10px;
+        }
       }
       
       .cell {
         font-size: 1.5rem;
         border-radius: 8px;
+        
+        .board-7x7 & {
+          font-size: 1.25rem;
+          border-radius: 6px;
+        }
       }
     }
     
@@ -365,10 +402,20 @@ import { formatPlayerSymbol } from '@libs/shared';
         width: 260px;
         height: 260px;
         padding: 8px;
+        
+        &.board-7x7 {
+          width: 320px;
+          height: 320px;
+          padding: 6px;
+        }
       }
       
       .cell {
         font-size: 1.25rem;
+        
+        .board-7x7 & {
+          font-size: 1rem;
+        }
       }
     }
   `],

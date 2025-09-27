@@ -38,6 +38,7 @@ import { GameMode, BoardSize } from '@libs/shared';
           >
             <option value="3">3×3</option>
             <option value="4">4×4</option>
+            <option value="7">7×7</option>
           </select>
         </div>
       </div>

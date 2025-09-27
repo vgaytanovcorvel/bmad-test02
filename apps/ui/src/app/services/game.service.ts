@@ -167,7 +167,14 @@ export class GameService implements OnDestroy {
       // Trigger animation signal before changing
       this._boardSizeChangeTrigger.set(this._boardSizeChangeTrigger() + 1);
       
-      const newConfig: GameConfig = { ...currentConfig, boardSize };
+      // Determine appropriate kInRow based on board size
+      const kInRow = boardSize === 7 ? 4 : 3;
+      
+      const newConfig: GameConfig = { 
+        ...currentConfig, 
+        boardSize,
+        kInRow
+      };
       this.startNewGame(newConfig);
     }
   }

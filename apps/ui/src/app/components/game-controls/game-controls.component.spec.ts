@@ -59,11 +59,13 @@ describe('GameControlsComponent', () => {
     expect(sizeSelector).toBeTruthy();
     
     const options = sizeSelector.nativeElement.options;
-    expect(options.length).toBe(2);
+    expect(options.length).toBe(3);
     expect(options[0].value).toBe('3');
     expect(options[0].text).toBe('3×3');
     expect(options[1].value).toBe('4');
     expect(options[1].text).toBe('4×4');
+    expect(options[2].value).toBe('7');
+    expect(options[2].text).toBe('7×7');
   });
 
   it('should render new game button', () => {
@@ -98,6 +100,15 @@ describe('GameControlsComponent', () => {
     sizeSelector.nativeElement.dispatchEvent(new Event('change'));
     
     expect(mockGameService.changeBoardSize).toHaveBeenCalledWith(4);
+  });
+
+  it('should call gameService.changeBoardSize with 7 when 7x7 option is selected', () => {
+    const sizeSelector = fixture.debugElement.query(By.css('[data-testid="size-selector"]'));
+    
+    sizeSelector.nativeElement.value = '7';
+    sizeSelector.nativeElement.dispatchEvent(new Event('change'));
+    
+    expect(mockGameService.changeBoardSize).toHaveBeenCalledWith(7);
   });
 
   it('should call gameService.resetGame when new game button is clicked', () => {

@@ -34,6 +34,30 @@ describe('GameBoardComponent', () => {
     expect(cells.length).toBe(9);
   });
 
+  it('should render 16 cells for 4x4 board', () => {
+    gameService.changeBoardSize(4);
+    fixture.detectChanges();
+    
+    const cells = fixture.debugElement.queryAll(By.css('[data-testid^="cell-"]'));
+    expect(cells.length).toBe(16);
+  });
+
+  it('should render 49 cells for 7x7 board', () => {
+    gameService.changeBoardSize(7);
+    fixture.detectChanges();
+    
+    const cells = fixture.debugElement.queryAll(By.css('[data-testid^="cell-"]'));
+    expect(cells.length).toBe(49);
+  });
+
+  it('should apply correct CSS class for 7x7 board', () => {
+    gameService.changeBoardSize(7);
+    fixture.detectChanges();
+    
+    const boardElement = fixture.debugElement.query(By.css('[data-testid="game-board"]'));
+    expect(boardElement.nativeElement.classList).toContain('board-7x7');
+  });
+
   it('should handle cell clicks by calling game service', () => {
     const makeMoveSpy = jest.spyOn(gameService, 'makeMove');
     const firstCell = fixture.debugElement.query(By.css('[data-testid="cell-0"]'));

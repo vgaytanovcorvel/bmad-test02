@@ -495,4 +495,52 @@ describe('GameService', () => {
       });
     });
   });
+
+  describe('7x7 Board Configuration', () => {
+    it('should create 7x7 board with correct kInRow value', () => {
+      service.changeBoardSize(7);
+      
+      const state = service.gameState();
+      expect(state.config.boardSize).toBe(7);
+      expect(state.config.kInRow).toBe(4);
+      expect(state.board.length).toBe(49);
+    });
+
+    it('should handle 7x7 board with human vs human mode', () => {
+      service.changeBoardSize(7);
+      service.changeGameMode('human-vs-human');
+      
+      expect(service.currentBoardSize()).toBe(7);
+      expect(service.currentMode()).toBe('human-vs-human');
+      expect(service.gameState().config.kInRow).toBe(4);
+    });
+
+    it('should handle 7x7 board with human vs computer mode', () => {
+      service.changeBoardSize(7);
+      service.changeGameMode('human-vs-computer');
+      
+      expect(service.currentBoardSize()).toBe(7);
+      expect(service.currentMode()).toBe('human-vs-computer');
+      expect(service.gameState().config.kInRow).toBe(4);
+    });
+
+    it('should preserve 7x7 configuration after reset', () => {
+      service.changeBoardSize(7);
+      service.makeMove(0);
+      service.resetGame();
+      
+      expect(service.currentBoardSize()).toBe(7);
+      expect(service.gameState().config.kInRow).toBe(4);
+      expect(service.gameState().board.length).toBe(49);
+      expect(service.gameState().board.every(cell => cell === null)).toBe(true);
+    });
+
+    it('should trigger board size change animation signal for 7x7', () => {
+      const initialTriggerValue = service.boardSizeChangeTrigger();
+      
+      service.changeBoardSize(7);
+      
+      expect(service.boardSizeChangeTrigger()).toBe(initialTriggerValue + 1);
+    });
+  });
 });

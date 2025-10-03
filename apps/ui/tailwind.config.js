@@ -22,8 +22,6 @@ module.exports = {
           'board': '#1f2937',
           'cell': '#374151',
           'cell-hover': '#4b5563',
-          'x-color': '#ef4444',
-          'o-color': '#10b981',
           'winning': '#fbbf24',
         }
       },

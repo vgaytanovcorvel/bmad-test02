@@ -136,11 +136,254 @@ test.describe('Game Controls', () => {
     // Check semantic HTML (labels)
     const modeLabel = page.locator('label[for="game-mode"]');
     const sizeLabel = page.locator('label[for="board-size"]');
+    const xColorLabel = page.locator('label[for="x-color"]');
+    const oColorLabel = page.locator('label[for="o-color"]');
     
     await expect(modeLabel).toBeVisible();
     await expect(sizeLabel).toBeVisible();
+    await expect(xColorLabel).toBeVisible();
+    await expect(oColorLabel).toBeVisible();
     await expect(modeLabel).toHaveText('Game Mode:');
     await expect(sizeLabel).toHaveText('Board Size:');
+    await expect(xColorLabel).toHaveText('X Color:');
+    await expect(oColorLabel).toHaveText('O Color:');
+  });
+
+  // Tests for Story 7.1: Color Customization E2E
+  test('should display color picker controls with default values', async ({ page }) => {
+    // Verify color picker controls are visible
+    await expect(page.getByTestId('x-color-picker')).toBeVisible();
+    await expect(page.getByTestId('o-color-picker')).toBeVisible();
+    
+    // Verify default color values
+    await expect(page.getByTestId('x-color-picker')).toHaveValue('#22d3ee');
+    await expect(page.getByTestId('o-color-picker')).toHaveValue('#f9a8d4');
+    
+    // Verify accessibility attributes
+    await expect(page.getByTestId('x-color-picker')).toHaveAttribute('aria-label', 'Select X player color');
+    await expect(page.getByTestId('o-color-picker')).toHaveAttribute('aria-label', 'Select O player color');
+    await expect(page.getByTestId('x-color-picker')).toHaveAttribute('type', 'color');
+    await expect(page.getByTestId('o-color-picker')).toHaveAttribute('type', 'color');
+  });
+
+  test('should apply color changes immediately to the game board', async ({ page }) => {
+    // Make moves to have both X and O on the board
+    await page.getByTestId('cell-0').click(); // X
+    await page.getByTestId('cell-1').click(); // O
+    
+    // Verify initial moves
+    await expect(page.getByTestId('cell-0')).toContainText('X');
+    await expect(page.getByTestId('cell-1')).toContainText('O');
+    
+    // Change X color to red
+    await page.getByTestId('x-color-picker').fill('#ff0000');
+    
+    // Change O color to green
+    await page.getByTestId('o-color-picker').fill('#00ff00');
+    
+    // Verify colors are applied to existing moves
+    const xCell = page.getByTestId('cell-0');
+    const oCell = page.getByTestId('cell-1');
+    
+    // Check that the cells have the player classes (CSS will use custom properties)
+    await expect(xCell).toHaveClass(/player-x/);
+    await expect(oCell).toHaveClass(/player-o/);
+    
+    // Make new moves and verify they also use the new colors
+    await page.getByTestId('cell-2').click(); // X with red color
+    await page.getByTestId('cell-3').click(); // O with green color
+    
+    await expect(page.getByTestId('cell-2')).toHaveClass(/player-x/);
+    await expect(page.getByTestId('cell-3')).toHaveClass(/player-o/);
+  });
+
+  test('should preserve color choices during game mode changes', async ({ page }) => {
+    // Set custom colors
+    await page.getByTestId('x-color-picker').fill('#ff0000');
+    await page.getByTestId('o-color-picker').fill('#00ff00');
+    
+    // Verify colors are set
+    await expect(page.getByTestId('x-color-picker')).toHaveValue('#ff0000');
+    await expect(page.getByTestId('o-color-picker')).toHaveValue('#00ff00');
+    
+    // Change game mode
+    await page.getByTestId('mode-selector').selectOption('human-vs-computer');
+    
+    // Verify colors are preserved
+    await expect(page.getByTestId('x-color-picker')).toHaveValue('#ff0000');
+    await expect(page.getByTestId('o-color-picker')).toHaveValue('#00ff00');
+    
+    // Change back to human vs human
+    await page.getByTestId('mode-selector').selectOption('human-vs-human');
+    
+    // Verify colors are still preserved
+    await expect(page.getByTestId('x-color-picker')).toHaveValue('#ff0000');
+    await expect(page.getByTestId('o-color-picker')).toHaveValue('#00ff00');
+  });
+
+  test('should preserve color choices during board size changes', async ({ page }) => {
+    // Set custom colors
+    await page.getByTestId('x-color-picker').fill('#0000ff');
+    await page.getByTestId('o-color-picker').fill('#ffff00');
+    
+    // Verify colors are set
+    await expect(page.getByTestId('x-color-picker')).toHaveValue('#0000ff');
+    await expect(page.getByTestId('o-color-picker')).toHaveValue('#ffff00');
+    
+    // Change board size
+    await page.getByTestId('size-selector').selectOption('4');
+    
+    // Verify colors are preserved
+    await expect(page.getByTestId('x-color-picker')).toHaveValue('#0000ff');
+    await expect(page.getByTestId('o-color-picker')).toHaveValue('#ffff00');
+    
+    // Change to 7x7
+    await page.getByTestId('size-selector').selectOption('7');
+    
+    // Verify colors are still preserved
+    await expect(page.getByTestId('x-color-picker')).toHaveValue('#0000ff');
+    await expect(page.getByTestId('o-color-picker')).toHaveValue('#ffff00');
+    
+    // Change back to 3x3
+    await page.getByTestId('size-selector').selectOption('3');
+    
+    // Verify colors are still preserved
+    await expect(page.getByTestId('x-color-picker')).toHaveValue('#0000ff');
+    await expect(page.getByTestId('o-color-picker')).toHaveValue('#ffff00');
+  });
+
+  test('should work with custom colors in human vs computer mode', async ({ page }) => {
+    // Set custom colors
+    await page.getByTestId('x-color-picker').fill('#800080'); // Purple
+    await page.getByTestId('o-color-picker').fill('#ffa500'); // Orange
+    
+    // Change to human vs computer mode
+    await page.getByTestId('mode-selector').selectOption('human-vs-computer');
+    
+    // Make human move
+    await page.getByTestId('cell-4').click(); // X
+    await expect(page.getByTestId('cell-4')).toContainText('X');
+    await expect(page.getByTestId('cell-4')).toHaveClass(/player-x/);
+    
+    // Wait for computer move
+    const computerMove = page.locator('[data-testid^="cell-"][data-player="O"]');
+    await expect(computerMove).toBeVisible({ timeout: 2000 });
+    await expect(computerMove).toHaveClass(/player-o/);
+    
+    // Verify colors are still maintained
+    await expect(page.getByTestId('x-color-picker')).toHaveValue('#800080');
+    await expect(page.getByTestId('o-color-picker')).toHaveValue('#ffa500');
+  });
+
+  test('should work with custom colors across different board sizes', async ({ page }) => {
+    const boardSizes = ['3', '4', '7'];
+    const xColor = '#ff69b4'; // Hot pink
+    const oColor = '#00ced1'; // Dark turquoise
+    
+    for (const size of boardSizes) {
+      // Set board size
+      await page.getByTestId('size-selector').selectOption(size);
+      
+      // Set custom colors
+      await page.getByTestId('x-color-picker').fill(xColor);
+      await page.getByTestId('o-color-picker').fill(oColor);
+      
+      // Make moves
+      await page.getByTestId('cell-0').click(); // X
+      await page.getByTestId('cell-1').click(); // O
+      
+      // Verify moves and colors
+      await expect(page.getByTestId('cell-0')).toContainText('X');
+      await expect(page.getByTestId('cell-1')).toContainText('O');
+      await expect(page.getByTestId('cell-0')).toHaveClass(/player-x/);
+      await expect(page.getByTestId('cell-1')).toHaveClass(/player-o/);
+      
+      // Verify color values are maintained
+      await expect(page.getByTestId('x-color-picker')).toHaveValue(xColor);
+      await expect(page.getByTestId('o-color-picker')).toHaveValue(oColor);
+      
+      // Reset for next iteration
+      await page.getByTestId('new-game-button').click();
+    }
+  });
+
+  test('should handle rapid color changes without issues', async ({ page }) => {
+    const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff'];
+    
+    // Make initial moves
+    await page.getByTestId('cell-0').click(); // X
+    await page.getByTestId('cell-1').click(); // O
+    
+    for (const color of colors) {
+      // Change both colors
+      await page.getByTestId('x-color-picker').fill(color);
+      await page.getByTestId('o-color-picker').fill(color);
+      
+      // Verify colors are applied
+      await expect(page.getByTestId('x-color-picker')).toHaveValue(color);
+      await expect(page.getByTestId('o-color-picker')).toHaveValue(color);
+      
+      // Verify existing moves maintain their classes
+      await expect(page.getByTestId('cell-0')).toHaveClass(/player-x/);
+      await expect(page.getByTestId('cell-1')).toHaveClass(/player-o/);
+    }
+  });
+
+  test('should maintain custom colors during winning condition', async ({ page }) => {
+    // Set custom colors
+    await page.getByTestId('x-color-picker').fill('#dc143c'); // Crimson
+    await page.getByTestId('o-color-picker').fill('#4169e1'); // Royal blue
+    
+    // Create winning scenario for X
+    await page.getByTestId('cell-0').click(); // X
+    await page.getByTestId('cell-3').click(); // O
+    await page.getByTestId('cell-1').click(); // X
+    await page.getByTestId('cell-4').click(); // O
+    await page.getByTestId('cell-2').click(); // X wins top row
+    
+    // Verify game ended
+    const gameStatus = page.getByTestId('game-status');
+    await expect(gameStatus).toContainText('X Wins!');
+    
+    // Verify winning cells still have correct classes
+    await expect(page.getByTestId('cell-0')).toHaveClass(/player-x/);
+    await expect(page.getByTestId('cell-1')).toHaveClass(/player-x/);
+    await expect(page.getByTestId('cell-2')).toHaveClass(/player-x/);
+    
+    // Verify winning cells have winning class
+    await expect(page.getByTestId('cell-0')).toHaveClass(/winning/);
+    await expect(page.getByTestId('cell-1')).toHaveClass(/winning/);
+    await expect(page.getByTestId('cell-2')).toHaveClass(/winning/);
+    
+    // Verify colors are still maintained
+    await expect(page.getByTestId('x-color-picker')).toHaveValue('#dc143c');
+    await expect(page.getByTestId('o-color-picker')).toHaveValue('#4169e1');
+  });
+
+  test('should preserve colors after new game', async ({ page }) => {
+    // Set custom colors
+    await page.getByTestId('x-color-picker').fill('#8b4513'); // Saddle brown
+    await page.getByTestId('o-color-picker').fill('#2e8b57'); // Sea green
+    
+    // Make some moves
+    await page.getByTestId('cell-0').click(); // X
+    await page.getByTestId('cell-1').click(); // O
+    
+    // Start new game
+    await page.getByTestId('new-game-button').click();
+    
+    // Verify colors are preserved
+    await expect(page.getByTestId('x-color-picker')).toHaveValue('#8b4513');
+    await expect(page.getByTestId('o-color-picker')).toHaveValue('#2e8b57');
+    
+    // Make new moves and verify colors work
+    await page.getByTestId('cell-4').click(); // X
+    await page.getByTestId('cell-3').click(); // O
+    
+    await expect(page.getByTestId('cell-4')).toContainText('X');
+    await expect(page.getByTestId('cell-3')).toContainText('O');
+    await expect(page.getByTestId('cell-4')).toHaveClass(/player-x/);
+    await expect(page.getByTestId('cell-3')).toHaveClass(/player-o/);
   });
 });
 

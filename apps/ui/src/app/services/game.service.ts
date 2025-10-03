@@ -41,6 +41,12 @@ export class GameService implements OnDestroy {
   private _boardSizeChangeTrigger = signal(0);
   boardSizeChangeTrigger = this._boardSizeChangeTrigger.asReadonly();
 
+  // Player color signals for Story 7.1
+  private _xColor = signal('#22d3ee'); // Default cyan
+  private _oColor = signal('#f9a8d4'); // Default pink
+  currentXColor = this._xColor.asReadonly();
+  currentOColor = this._oColor.asReadonly();
+
   constructor() {
     this.startNewGame();
   }
@@ -195,6 +201,15 @@ export class GameService implements OnDestroy {
   // Utility method to check if game is in progress
   isGameInProgress(): boolean {
     return this.hasGameStarted() && !this.isTerminal();
+  }
+
+  // Player color management methods for Story 7.1
+  changeXColor(color: string): void {
+    this._xColor.set(color);
+  }
+  
+  changeOColor(color: string): void {
+    this._oColor.set(color);
   }
 
   private createInitialState(): GameState {

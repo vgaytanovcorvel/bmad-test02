@@ -41,6 +41,32 @@ import { GameMode, BoardSize } from '@libs/shared';
             <option value="7">7×7</option>
           </select>
         </div>
+        
+        <div class="control-group">
+          <label for="x-color" class="control-label">X Color:</label>
+          <input 
+            type="color" 
+            id="x-color" 
+            class="control-color"
+            [value]="currentXColor()" 
+            (change)="onXColorChange($event)"
+            data-testid="x-color-picker" 
+            aria-label="Select X player color"
+          >
+        </div>
+        
+        <div class="control-group">
+          <label for="o-color" class="control-label">O Color:</label>
+          <input 
+            type="color" 
+            id="o-color" 
+            class="control-color"
+            [value]="currentOColor()" 
+            (change)="onOColorChange($event)"
+            data-testid="o-color-picker" 
+            aria-label="Select O player color"
+          >
+        </div>
       </div>
       
       <button 
@@ -64,6 +90,10 @@ export class GameControlsComponent {
   currentMode = this.gameService.currentMode;
   currentBoardSize = this.gameService.currentBoardSize;
   
+  // Player color state for Story 7.1
+  currentXColor = this.gameService.currentXColor;
+  currentOColor = this.gameService.currentOColor;
+  
   onModeChange(event: Event): void {
     const target = event.target as HTMLSelectElement;
     this.gameService.changeGameMode(target.value as GameMode);
@@ -76,5 +106,15 @@ export class GameControlsComponent {
   
   onNewGame(): void {
     this.gameService.resetGame();
+  }
+  
+  onXColorChange(event: Event): void {
+    const target = event.target as HTMLInputElement;
+    this.gameService.changeXColor(target.value);
+  }
+  
+  onOColorChange(event: Event): void {
+    const target = event.target as HTMLInputElement;
+    this.gameService.changeOColor(target.value);
   }
 }

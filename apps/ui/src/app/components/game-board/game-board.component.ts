@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, computed, inject, signal, effect, OnDestroy, Injector } from '@angular/core';
+import { Component, ChangeDetectionStrategy, computed, inject, signal, effect, OnDestroy, Injector, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { GameService } from '../../services/game.service';
 import { VisualEnhancementService } from '../../services/visual-enhancement.service';
@@ -38,6 +38,12 @@ import { formatPlayerSymbol } from '@libs/shared';
     </div>
   `,
   styles: [`
+    :host {
+      /* CSS custom properties for dynamic player colors */
+      --x-player-color: #22d3ee; /* default fallback */
+      --o-player-color: #f9a8d4; /* default fallback */
+    }
+    
     .game-board {
       @apply mx-auto;
       
@@ -114,17 +120,17 @@ import { formatPlayerSymbol } from '@libs/shared';
         transform: scale(1.02);
       }
       
-      /* Player-specific styling with elevated colors */
+      /* Player-specific styling with dynamic colors */
       &.player-x {
-        color: #22d3ee !important; /* Vibrant Cyan for X */
+        color: var(--x-player-color) !important;
         font-weight: 900;
-        text-shadow: 0 1px 3px rgba(34, 211, 238, 0.2);
+        text-shadow: 0 1px 3px color-mix(in srgb, var(--x-player-color) 20%, transparent);
       }
       
       &.player-o {  
-        color: #f9a8d4 !important; /* Brighter Pink for O */
+        color: var(--o-player-color) !important;
         font-weight: 900;
-        text-shadow: 0 1px 3px rgba(249, 168, 212, 0.2);
+        text-shadow: 0 1px 3px color-mix(in srgb, var(--o-player-color) 20%, transparent);
       }
       
       &.occupied {
@@ -425,6 +431,7 @@ export class GameBoardComponent implements OnDestroy {
   private gameService = inject(GameService);
   private enhancementService = inject(VisualEnhancementService);
   private injector = inject(Injector);
+  private elementRef = inject(ElementRef);
   
   // Animation state signals
   private newMovePosition = signal<number | null>(null);
@@ -495,6 +502,20 @@ export class GameBoardComponent implements OnDestroy {
     effect((onCleanup) => {
       this.gameService.boardSizeChangeTrigger();
       this.triggerBoardSizeAnimation();
+      
+      onCleanup(() => {
+        // Effect cleanup will be handled automatically when component is destroyed
+      });
+    }, { injector: this.injector });
+    
+    // Listen for color changes and update CSS custom properties
+    effect((onCleanup) => {
+      const xColor = this.gameService.currentXColor();
+      const oColor = this.gameService.currentOColor();
+      
+      const hostElement = this.elementRef.nativeElement as HTMLElement;
+      hostElement.style.setProperty('--x-player-color', xColor);
+      hostElement.style.setProperty('--o-player-color', oColor);
       
       onCleanup(() => {
         // Effect cleanup will be handled automatically when component is destroyed

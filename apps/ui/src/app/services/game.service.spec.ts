@@ -938,4 +938,164 @@ describe('GameService', () => {
       });
     });
   });
+  
+  // Tests for Story 7.1: Player Color Customization
+  describe('Player Color Management', () => {
+    describe('Initial Color State', () => {
+      it('should initialize with default colors', () => {
+        expect(service.currentXColor()).toBe('#22d3ee'); // Default cyan
+        expect(service.currentOColor()).toBe('#f9a8d4'); // Default pink
+      });
+    });
+
+    describe('changeXColor', () => {
+      it('should update X player color', () => {
+        const newColor = '#ff0000'; // Red
+        service.changeXColor(newColor);
+        
+        expect(service.currentXColor()).toBe(newColor);
+      });
+
+      it('should accept various color formats', () => {
+        const colors = ['#ff0000', '#rgb(255, 0, 0)', '#red', '#FF0000'];
+        
+        colors.forEach(color => {
+          service.changeXColor(color);
+          expect(service.currentXColor()).toBe(color);
+        });
+      });
+
+      it('should not affect O player color', () => {
+        const originalOColor = service.currentOColor();
+        service.changeXColor('#ff0000');
+        
+        expect(service.currentOColor()).toBe(originalOColor);
+      });
+    });
+
+    describe('changeOColor', () => {
+      it('should update O player color', () => {
+        const newColor = '#00ff00'; // Green
+        service.changeOColor(newColor);
+        
+        expect(service.currentOColor()).toBe(newColor);
+      });
+
+      it('should accept various color formats', () => {
+        const colors = ['#00ff00', '#rgb(0, 255, 0)', '#green', '#00FF00'];
+        
+        colors.forEach(color => {
+          service.changeOColor(color);
+          expect(service.currentOColor()).toBe(color);
+        });
+      });
+
+      it('should not affect X player color', () => {
+        const originalXColor = service.currentXColor();
+        service.changeOColor('#00ff00');
+        
+        expect(service.currentXColor()).toBe(originalXColor);
+      });
+    });
+
+    describe('Color Persistence During Game Operations', () => {
+      it('should preserve colors during game mode changes', () => {
+        const xColor = '#ff0000';
+        const oColor = '#00ff00';
+        
+        service.changeXColor(xColor);
+        service.changeOColor(oColor);
+        
+        // Change modes
+        service.changeGameMode('human-vs-computer');
+        expect(service.currentXColor()).toBe(xColor);
+        expect(service.currentOColor()).toBe(oColor);
+        
+        service.changeGameMode('human-vs-human');
+        expect(service.currentXColor()).toBe(xColor);
+        expect(service.currentOColor()).toBe(oColor);
+      });
+
+      it('should preserve colors during board size changes', () => {
+        const xColor = '#ff0000';
+        const oColor = '#00ff00';
+        
+        service.changeXColor(xColor);
+        service.changeOColor(oColor);
+        
+        // Change board sizes
+        service.changeBoardSize(4);
+        expect(service.currentXColor()).toBe(xColor);
+        expect(service.currentOColor()).toBe(oColor);
+        
+        service.changeBoardSize(7);
+        expect(service.currentXColor()).toBe(xColor);
+        expect(service.currentOColor()).toBe(oColor);
+        
+        service.changeBoardSize(3);
+        expect(service.currentXColor()).toBe(xColor);
+        expect(service.currentOColor()).toBe(oColor);
+      });
+
+      it('should preserve colors during game reset', () => {
+        const xColor = '#ff0000';
+        const oColor = '#00ff00';
+        
+        service.changeXColor(xColor);
+        service.changeOColor(oColor);
+        service.makeMove(0); // Make a move
+        
+        service.resetGame();
+        
+        expect(service.currentXColor()).toBe(xColor);
+        expect(service.currentOColor()).toBe(oColor);
+      });
+
+      it('should preserve colors throughout complete game', () => {
+        const xColor = '#ff0000';
+        const oColor = '#00ff00';
+        
+        service.changeXColor(xColor);
+        service.changeOColor(oColor);
+        
+        // Play a complete game
+        service.makeMove(0); // X
+        service.makeMove(3); // O
+        service.makeMove(1); // X
+        service.makeMove(4); // O
+        service.makeMove(2); // X wins top row
+        
+        expect(service.isTerminal()).toBe(true);
+        expect(service.currentXColor()).toBe(xColor);
+        expect(service.currentOColor()).toBe(oColor);
+      });
+    });
+
+    describe('Color State Reactivity', () => {
+      it('should emit color changes immediately', () => {
+        const xColor = '#123456';
+        const oColor = '#abcdef';
+        
+        service.changeXColor(xColor);
+        expect(service.currentXColor()).toBe(xColor);
+        
+        service.changeOColor(oColor);
+        expect(service.currentOColor()).toBe(oColor);
+      });
+
+      it('should handle rapid color changes', () => {
+        const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff'];
+        
+        colors.forEach(color => {
+          service.changeXColor(color);
+          expect(service.currentXColor()).toBe(color);
+        });
+        
+        colors.forEach(color => {
+          service.changeOColor(color);
+          expect(service.currentOColor()).toBe(color);
+        });
+      });
+    });
+  });
 });

@@ -25,6 +25,10 @@ export function createMockGameService() {
   const statusSignal = signal<'playing' | 'won' | 'draw'>('playing');
   
   const boardSizeChangeTriggerSignal = signal(0);
+  
+  // Color signals for Story 7.1
+  const xColorSignal = signal('#22d3ee');
+  const oColorSignal = signal('#f9a8d4');
 
   const mockService = {
     // Signals
@@ -38,6 +42,10 @@ export function createMockGameService() {
     status: statusSignal,
     boardSizeChangeTrigger: boardSizeChangeTriggerSignal.asReadonly(),
     
+    // Color signals for Story 7.1
+    currentXColor: xColorSignal.asReadonly(),
+    currentOColor: oColorSignal.asReadonly(),
+    
     // Methods
     makeMove: jest.fn().mockReturnValue(true),
     resetGame: jest.fn(),
@@ -48,7 +56,11 @@ export function createMockGameService() {
     changeGameMode: jest.fn(),
     changeBoardSize: jest.fn(),
     hasGameStarted: jest.fn().mockReturnValue(false),
-    isGameInProgress: jest.fn().mockReturnValue(false)
+    isGameInProgress: jest.fn().mockReturnValue(false),
+    
+    // Color methods for Story 7.1
+    changeXColor: jest.fn(),
+    changeOColor: jest.fn()
   };
   
   return mockService;
